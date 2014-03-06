@@ -1,8 +1,13 @@
 import sys
 from cx_Freeze import setup, Executable
+sys.setrecursionlimit(10000)
 
 # Dependencies are automatically detected, but it might need fine tuning.
-build_exe_options = {"packages": ["kivy"], "excludes": ["tkinter"]}
+build_exe_options = {"packages": ["kivy"], "excludes": ["tkinter"],
+    "include_files": ['config//','images//','Ganji//'],
+    "includes":["kivy"],
+    "icon" : "images/app-icon.ico"
+    }
 
 # GUI applications require a different base on Windows (the default is for a
 # console application).

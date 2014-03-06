@@ -5,7 +5,7 @@
 # Author: Kingsley Ndiewo
 # Company: Intellect Alliance Limited
 # Copyright: (C)2013 Intellect Alliance Limited
-from GanjiGame import GanjiGame
+from Ganji.GanjiGame import GanjiGame
 
 def loadConfiguration():
     newGame = GanjiGame(['Kingsley', 'Matt', 'Jerry', 'Kimari'])
