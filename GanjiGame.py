@@ -35,6 +35,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
 from kivy.graphics import *
 from kivy.uix.image import Image
+from kivy.config import Config
 # network
 import socket
 # ---------------------------------------------
@@ -42,6 +43,11 @@ import socket
 class GanjiGame(App):
     " The base class for all Ganji games "
     def __init__(self, playerList):
+        # ===============================================================
+        # set kivy config variables
+        Config.set('input', 'mouse', 'mouse,disable_multitouch')
+        Config.write()
+        # ===============================================================
         self.board = []
         self.companiesConf = 'config/companies.ini'
         self.estatesConf = 'config/estates.ini'
