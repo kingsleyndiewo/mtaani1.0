@@ -22,3 +22,5 @@ class GanjiSystem(object):
         self.utilitiesConf = self.configDir + '/utilities.ini'
         self.cardsConf = self.configDir + '/cards.ini'
         self.mainConf = self.configDir + '/general.ini'
+        self.imgDir = os.path.join(os.path.dirname(__file__),'../images')
+        self.splashImg = self.imgDir + '/Monopoly.png'

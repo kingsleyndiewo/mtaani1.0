@@ -112,6 +112,8 @@ class GanjiGame(App):
         # add the button for submitting
         self.submitter = Button(text='SUBMIT NAMES', font_size=self.fontSizes[0], size_hint=(.3, .05), color=[0,0,0,1],
             pos_hint={'x':.4, 'y':.5}, bold=True)
+        # add image
+        ganji20image = Image(source=self.systemBox.splashImg)
         self.submitter.bind(on_release=self.loginCallback)
         self.boardGfx.add_widget(self.submitter)
         self.boardGfx.add_widget(banner)
