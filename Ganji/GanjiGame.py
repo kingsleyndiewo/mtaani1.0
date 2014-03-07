@@ -36,25 +36,34 @@ from kivy.uix.scrollview import ScrollView
 from kivy.graphics import *
 from kivy.uix.image import Image
 from kivy.config import Config
-# network
-import socket
 # system utilities
 from GanjiSystem import GanjiSystem
+# network
+import socket
+# ---------------------------------------------
 # ---------------------------------------------
 # a class that defines the simple Ganji board game
 class GanjiGame(App):
     " The base class for all Ganji games "
-    def __init__(self, playerList):
+    def __init__(self):
         # ===============================================================
         # set kivy config variables
         Config.set('input', 'mouse', 'mouse,disable_multitouch')
         Config.write()
         # ===============================================================
         self.board = []
+        # system box has network object and directory paths
         self.systemBox = GanjiSystem()
-        self.playersList = playerList
+        self.playersList = []
         self.gameSpeak = GanjiInteraction()
-        self.playerCount = len(self.playersList)
+        # =============================================================
+        # setup network
+        # =============================================================
+        self.socket = socket.socket()
+        # get local machine name
+        self.host = socket.gethostname()
+        self.port = 20143
+        self.socket.bind((self.host, self.port)) 
         # parsers
         ganjiConfig = ConfigParser()
         # read in estate list
@@ -89,6 +98,39 @@ class GanjiGame(App):
         # run graphics constructor
         App.__init__(self)
         # =============================================================
+        # create the login area
+        banner = Label(text='WELCOME TO GANJI', font_size=(self.fontSizes[0] * 2), size_hint=(.5, .2), color=[1,1,1,1],
+            pos_hint={'x':.3, 'y':.85}, bold=True)
+        self.sysNotices = Label(text='Please enter the names of up to 6 players', font_size=self.fontSizes[1], size_hint=(.5, .2), color=[1,1,1,1],
+            pos_hint={'x':.3, 'y':.8})
+        self.playerNames = []
+        for x in range(6):  
+            txtBox = (TextInput(text='', font_size=self.fontSizes[0], size_hint=(.3, .05),
+                foreground_color=[.2,.1,.2,1], pos_hint = {'x':.4, 'y':(.78 - (.04 * x))}, background_color=[1,1,1,1]))
+            self.boardGfx.add_widget(txtBox)
+            self.playerNames.append(txtBox)
+        # add the button for submitting
+        self.submitter = Button(text='SUBMIT NAMES', font_size=self.fontSizes[0], size_hint=(.3, .05), color=[0,0,0,1],
+            pos_hint={'x':.4, 'y':.5}, bold=True)
+        self.submitter.bind(on_release=self.loginCallback)
+        self.boardGfx.add_widget(self.submitter)
+        self.boardGfx.add_widget(banner)
+        self.boardGfx.add_widget(self.sysNotices)
+    
+    def loginCallback(self, instance):
+        for n in self.playerNames:
+            if n.text != '':
+                self.playersList.append(n.text)
+        if self.playersList == []:
+            self.sysNotices.text = "You must enter at least 1 player to proceed"
+            return
+        else:
+            self.boardGfx.clear_widgets()
+            self.initNewGame(self.playersList)
+            
+    def initNewGame(self, playerList):
+        # set the player count
+        self.playerCount = len(self.playersList)
         # create button for rolling dice
         self.dice = Button(text='ROLL DICE', font_size=self.fontSizes[1], size_hint=(.07, .07), color=[0,0,0,1],
             pos_hint={'x':.39, 'y':.28}, bold=True)
@@ -109,14 +151,6 @@ class GanjiGame(App):
         # create card boxes
         self.GanjiBox = GanjiGanjiBox(toolBox, self.fontSizes)
         self.Ma3Box = GanjiMathreeBox(toolBox, self.fontSizes)
-        # =============================================================
-        # setup network
-        # =============================================================
-        self.socket = socket.socket()
-        # get local machine name
-        self.host = socket.gethostname()
-        self.port = 20143
-        self.socket.bind((self.host, self.port)) 
         # create tiles
         self.createBoard()
         # create players

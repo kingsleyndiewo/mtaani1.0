@@ -8,7 +8,7 @@
 from Ganji.GanjiGame import GanjiGame
 
 def loadConfiguration():
-    newGame = GanjiGame(['Kingsley', 'Matt', 'Jerry', 'Kimari'])
+    newGame = GanjiGame()
     newGame.run()
     
 if __name__ == '__main__':

@@ -3,9 +3,8 @@ from cx_Freeze import setup, Executable
 sys.setrecursionlimit(10000)
 
 # Dependencies are automatically detected, but it might need fine tuning.
-build_exe_options = {"packages": ["kivy"], "excludes": ["tkinter"],
+build_exe_options = {"packages": ["kivy"], "excludes": ["tkinter", "werkzeug"],
     "include_files": ['config//','images//','Ganji//'],
-    "includes":["kivy"],
     "icon" : "images/app-icon.ico"
     }
 

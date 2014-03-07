@@ -7,8 +7,6 @@
 # Place: Nairobi, Kenya
 # Copyright: (C)2013 Intellect Alliance Limited
 # ---------------------------------------------
-# network
-import socket
 # paths
 import os
 # ---------------------------------------------
@@ -24,4 +22,3 @@ class GanjiSystem(object):
         self.utilitiesConf = self.configDir + '/utilities.ini'
         self.cardsConf = self.configDir + '/cards.ini'
         self.mainConf = self.configDir + '/general.ini'
- 
