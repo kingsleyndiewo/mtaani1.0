@@ -100,24 +100,27 @@ class GanjiGame(App):
         # =============================================================
         # create the login area
         banner = Label(text='WELCOME TO GANJI', font_size=(self.fontSizes[0] * 2), size_hint=(.5, .2), color=[1,1,1,1],
-            pos_hint={'x':.3, 'y':.85}, bold=True)
+            pos_hint={'x':.25, 'y':.85}, bold=True)
         self.sysNotices = Label(text='Please enter the names of up to 6 players', font_size=self.fontSizes[1], size_hint=(.5, .2), color=[1,1,1,1],
-            pos_hint={'x':.3, 'y':.8})
+            pos_hint={'x':.25, 'y':.8})
         self.playerNames = []
         for x in range(6):  
             txtBox = (TextInput(text='', font_size=self.fontSizes[0], size_hint=(.3, .05),
-                foreground_color=[.2,.1,.2,1], pos_hint = {'x':.4, 'y':(.78 - (.04 * x))}, background_color=[1,1,1,1]))
+                foreground_color=[.2,.1,.2,1], pos_hint = {'x':.35, 'y':(.78 - (.04 * x))}, background_color=[1,1,1,1]))
             self.boardGfx.add_widget(txtBox)
             self.playerNames.append(txtBox)
         # add the button for submitting
-        self.submitter = Button(text='SUBMIT NAMES', font_size=self.fontSizes[0], size_hint=(.3, .05), color=[0,0,0,1],
-            pos_hint={'x':.4, 'y':.5}, bold=True)
+        self.submitter = Button(text='SUBMIT NAMES', font_size=self.fontSizes[0], size_hint=(.25, .05), color=[0,0,0,1],
+            pos_hint={'x':.38, 'y':.5}, bold=True)
         # add image
-        ganji20image = Image(source=self.systemBox.splashImg)
+        ganji20image = Image(source=self.systemBox.splashImg, pos_hint={'x':.01, 'y':.01}, size_hint=(.5, .5))
+        ganji20image2 = Image(source=self.systemBox.splashImg, pos_hint={'x':.5, 'y':.01}, size_hint=(.5, .5))
         self.submitter.bind(on_release=self.loginCallback)
         self.boardGfx.add_widget(self.submitter)
         self.boardGfx.add_widget(banner)
         self.boardGfx.add_widget(self.sysNotices)
+        self.boardGfx.add_widget(ganji20image)
+        self.boardGfx.add_widget(ganji20image2)
     
     def loginCallback(self, instance):
         for n in self.playerNames:
@@ -135,19 +138,31 @@ class GanjiGame(App):
         self.playerCount = len(self.playersList)
         # create button for rolling dice
         self.dice = Button(text='ROLL DICE', font_size=self.fontSizes[1], size_hint=(.07, .07), color=[0,0,0,1],
-            pos_hint={'x':.39, 'y':.28}, bold=True)
+            pos_hint={'x':.39, 'y':.2}, bold=True, background_color=[.8,.8,1,1])
+        # create button for the asset manager
         self.manager = Button(text='MANAGE ASSETS', font_size=self.fontSizes[1], size_hint=(.09, .05), color=[0,0,0,1],
-            pos_hint={'x':.5, 'y':.28}, bold=True)
+            pos_hint={'x':.5, 'y':.2}, bold=True, background_color=[.8,.8,1,1])
+        # set the two callbacks
         self.dice.bind(on_release=self.diceCallback)
         self.manager.bind(on_release=self.mgrCallback)
+        # create label for showing dice roll results
         self.rolls = Label(text='0    0', font_size=self.fontSizes[1], size_hint=(.07, .07), color=[1,1,1,1],
-            pos_hint={'x':.39, 'y':.35}, bold=True)
+            pos_hint={'x':.39, 'y':.25}, bold=True)
+        # create label for showing who's turn it is
         self.turnLabel = Label(text='None', font_size=self.fontSizes[0], size_hint=(.07, .07), color=[1,1,1,1],
-            pos_hint={'x':.51, 'y':.35})
-        self.msgBox = TextInput(text='System: No current messages', font_size=self.fontSizes[0], size_hint=(.21, .25),
-                foreground_color=[.7,1,.7,1], pos_hint = {'x':.39, 'y':.65}, readonly = True, background_color=[0,0,0,1])
-        self.hailBox = TextInput(text='Niko Hapa', font_size=self.fontSizes[0], size_hint=(.18, .25),
-            foreground_color=[1,0,.3,1], pos_hint = {'x':.16, 'y':.65}, readonly = True, background_color=[0,0,0,1])
+            pos_hint={'x':.51, 'y':.25})
+        # create a text box for showing the system and game messages
+        self.msgBox = TextInput(text='System: No current messages', font_size=self.fontSizes[0], size_hint=(.24, .3),
+                foreground_color=[.7,1,.7,1], pos_hint = {'x':.39, 'y':.6}, readonly = True, background_color=[0,0,0,1])
+        # create a text box for showing the location hails (NikoHapa) and chats (Bonga)
+        self.hailBox = TextInput(text='Niko Hapa and Chat Box', font_size=self.fontSizes[0], size_hint=(.24, .3),
+            foreground_color=[1,0,.3,1], pos_hint = {'x':.12, 'y':.6}, readonly = True, background_color=[0,0,0,1])
+        # create the input box for chat messages and the button for sending
+        self.chatBox = TextInput(text='', font_size=self.fontSizes[0], size_hint=(.45, .04),
+            foreground_color=[.3,.2,.3,1], pos_hint = {'x':.39, 'y':.1}, background_color=[.7,.8,1,1])
+        self.chatSend = Button(text='SEND', font_size=self.fontSizes[1], size_hint=(.08, .04), color=[0,0,0,1],
+            pos_hint={'x':.3, 'y':.1}, background_color=[.8,.8,1,1], bold=True)
+        self.chatSend.bind(on_release=self.chatCallback)
         # just a convenience list of things we send to other classes a lot
         toolBox = [self.boardGfx.add_widget, self.boardGfx.remove_widget, self.msgBox]
         # create card boxes
@@ -237,6 +252,15 @@ class GanjiGame(App):
                 if playerObj.doublesCount == 0:
                     # change turn
                     self.switchTurn(True)
+    def chatCallback(self, instance):
+        # check for empty chat
+        if self.chatBox.text == '':
+            return
+        # send the chat to the chat log
+        newChat = "\n%s: %s" % (self.playersList[self.currentPlayer], self.chatBox.text)
+        self.hailBox.text += newChat
+        # clear chat box
+        self.chatBox.text = ''
     
     def bankruptcy(self, player):
         # process a bankruptcy
@@ -292,7 +316,7 @@ class GanjiGame(App):
         # clear notifications label if too long
         if len(self.msgBox.text) > 700:
             self.msgBox.text = ''
-        if len(self.hailBox.text) > 700:
+        if len(self.hailBox.text) > 1400:
             self.hailBox.text = ''
         if self.ttsRoll:
             # speak the rolls
@@ -521,6 +545,9 @@ class GanjiGame(App):
         self.boardGfx.add_widget(self.msgBox)
         # add hail box for tile messages and chats
         self.boardGfx.add_widget(self.hailBox)
+        # add the box for entering a chat message
+        self.boardGfx.add_widget(self.chatBox)
+        self.boardGfx.add_widget(self.chatSend)
         # add image
         #self.boardGfx.add_widget(Image(source='images/Monopoly.png', pos=(0,0),size=self.boardGfx.size))
     

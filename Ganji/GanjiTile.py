@@ -72,7 +72,7 @@ class GanjiTile(object):
         self.occupants.append(player.name)
         self.placePlayer(player, boardObj, playerCount)
         self.addWidgetToBoard(player.token)
-        self.hailsLog.text = self.hailsLog.text + "\nNikoHapa: Welcome to %s, %s" % (self.name, player.name)
+        self.hailsLog.text = self.hailsLog.text + "\n[NikoHapa]: Welcome to %s, %s" % (self.name, player.name)
         # check for bank loan
         if player.loan > 0:
             # compute due date
@@ -93,7 +93,7 @@ class GanjiTile(object):
         # cleanup
         self.occupants.remove(player.name)
         self.removeWidgetFromBoard(player.token)
-        self.hailsLog.text = self.hailsLog.text + "\nNikoHapa: %s has left %s" % (player.name, self.name)
+        self.hailsLog.text = self.hailsLog.text + "\n[NikoHapa]: %s has left %s" % (player.name, self.name)
     
     def payLoan(self, player):
         # simply process a loan payment
