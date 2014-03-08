@@ -33,6 +33,7 @@ class GanjiJail(GanjiTile):
     def admitInmate(self, player):
         # check-in a player
         player.inJail = True
+        player.arrested = False
         player.jailTurn -= 1
         self.population += 1
     def playerLeaves(self, player):
@@ -46,5 +47,8 @@ class GanjiJail(GanjiTile):
         """ The calling process is responsible for establishing that the funds are available to pay """
         player.cash -= self.bail
         player.ATMTile.cash += self.bail
+        # has to be cleared
+        player.inJail = False
+        player.jailTurn = self.turns
         self.boardLog.text = self.boardLog.text + "\n%s: %s just paid %2.f SFR bail to the police" % (self.name, player.name, self.bail)
             

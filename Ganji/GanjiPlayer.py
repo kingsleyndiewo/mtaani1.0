@@ -271,7 +271,7 @@ class GanjiPlayer:
         propItem.bind(on_release=self.dismissPopup)
         cpanel.add_widget(propItem)
         # make a popup and fill with info
-        self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.25, .4))
+        self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.25, .5))
         self.popupDialog.pos_hint = {'x':.4, 'y':.48}
         self.addWidgetToBoard(self.popupDialog)
         

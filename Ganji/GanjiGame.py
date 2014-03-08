@@ -127,14 +127,16 @@ class GanjiGame(App):
         for n in self.playerNames:
             if n.text != '':
                 self.playersList.append(n.text)
-        if self.playersList == []:
-            self.sysNotices.text = "You must enter at least 1 player to proceed"
+        if self.playersList == [] or len(self.playersList) < 2:
+            self.sysNotices.text = "You must enter at least 2 players to proceed"
             return
         else:
             self.boardGfx.clear_widgets()
             self.initNewGame(self.playersList)
             
     def initNewGame(self, playerList):
+        # initialize log file
+        self.systemBox.initLogFile()
         # set the player count
         self.playerCount = len(self.playersList)
         # create button for rolling dice
@@ -190,6 +192,8 @@ class GanjiGame(App):
         self.currentPlayer = 0
         # set oweFlag to false
         self.oweFlag = False
+        # set jail bird flag to false
+        self.jailBird = False
         # set initial turn
         self.switchTurn()
     
@@ -305,31 +309,58 @@ class GanjiGame(App):
         # get player object
         name = self.playersList[self.currentPlayer]
         playerObj = self.players[name]
+        # ==============CHECK DEBT===============================================================
         if self.oweFlag:
             if not self.payDues(playerObj):
                 # no one else plays
                 self.msgBox.text = self.msgBox.text + "\nSystem: %s must pay debt before play continues" %  self.playersList[self.currentPlayer]
             # we can't give player extra turn
             return
+        # ==============CHECK JAILED=============================================================
+        if self.jailBird:
+            # see what was chosen
+            if self.board[playerObj.position].popupValue == "Roll":
+                # just let the execution go through here as usual
+                pass
+            else:
+                # pay bail and continue
+                self.board[playerObj.position].payBail(playerObj)
+            self.jailBird = False
+        elif playerObj.inJail and playerObj.cash >= self.board[playerObj.position].bail and \
+            playerObj.jailTurn < self.board[playerObj.position].turns:
+            # prompt for whether to pay bail or roll for doubles
+            self.board[playerObj.position].popupBox("Roll for doubles or pay the %2.f SFR bail?" %
+                self.board[playerObj.position].bail, ["Roll", "Pay Bail"])
+            # set callback
+            # setup post-dialog process
+            self.returnExecution = self.diceCallback
+            self.reArgs = [None]
+            self.jailBird = True
+            return
+        # =======================================================================================
         result = playerObj.rollDice()
         self.rolls.text = "%d    %d" % (result[0], result[1])
         self.rolls.canvas.ask_update()
         # clear notifications label if too long
         if len(self.msgBox.text) > self.textMax:
+            self.systemBox.logFO.write(self.msgBox.text)
+            self.systemBox.logFO.flush()
             self.msgBox.text = ''
         if len(self.hailBox.text) > self.textMax:
             self.hailBox.text = ''
         if self.ttsRoll:
             # speak the rolls
             self.gameSpeak.notifyText("%s, You rolled %d and %d" % (name, result[0], result[1]))
-        # check jail
+        # =======================================================================================
+        # process rolling for doubles in jail
         if playerObj.inJail:
             # doubles first
             if result[2]:
                 # just continue as usual; but cancel doubles
                 result[2] = False
+                self.msgBox.text = self.msgBox.text + "\nSystem: %s rolled doubles and broke out of jail!" % playerObj.name 
             else:
-                if playerObj.jailTurn < 0:
+                if playerObj.jailTurn == 0:
                     # too many turns in jail
                     if playerObj.cash >= self.board[playerObj.position].bail:
                         self.board[playerObj.position].payBail(playerObj)
@@ -347,7 +378,7 @@ class GanjiGame(App):
                     self.switchTurn(True)
                     # stop to prevent move
                     return
-        
+        # =======================================================================================
         # ================PROCESSING MOVEMENT====================================================
         switchFlag = False
         if result[2] != True and result[3] != True:
@@ -368,7 +399,9 @@ class GanjiGame(App):
             # just doubles
             move_fb = self.movePlayer(name, result[0] + result[1])
             # we don't switch turn here because of doubles
-            switchFlag = False
+            # unless doubles landed us in jail
+            if playerObj.inJail == False:
+                switchFlag = False
         # =========================================================================================
         # test the feedback for mathree ride
         matCount = 0
