@@ -86,6 +86,7 @@ class GanjiGame(App):
         ganjiConfig.read(self.systemBox.mainConf)
         self.screenW = ganjiConfig.getint('GAME', 'ScreenX')
         self.screenH = ganjiConfig.getint('GAME', 'ScreenY')
+        self.textMax = ganjiConfig.getint('GAME', 'TextMax')
         self.ttsRoll = bool(ganjiConfig.getint('TTS-ROLLS', 'Speak'))
         self.scrollable = bool(ganjiConfig.getint('DISPLAY', 'Scrollable'))
         self.mortgageRate = ganjiConfig.getfloat('BANK', 'Mortgage')
@@ -314,9 +315,9 @@ class GanjiGame(App):
         self.rolls.text = "%d    %d" % (result[0], result[1])
         self.rolls.canvas.ask_update()
         # clear notifications label if too long
-        if len(self.msgBox.text) > 700:
+        if len(self.msgBox.text) > self.textMax:
             self.msgBox.text = ''
-        if len(self.hailBox.text) > 1400:
+        if len(self.hailBox.text) > self.textMax:
             self.hailBox.text = ''
         if self.ttsRoll:
             # speak the rolls
@@ -414,7 +415,10 @@ class GanjiGame(App):
             return result
         elif isinstance(destTile, GanjiGanjiTile):
             # pick card
-            result = self.board[dest].playerArrives(playerObj, self.GanjiBox, self.boardGfx, self.playerCount)
+            self.board[dest].playerArrives(playerObj, self.GanjiBox, self.boardGfx, self.playerCount)
+            # ganji card may put player in debt
+            if playerObj.debt != 0:
+                self.oweFlag = True
             return []
         # ================POLICE TILE=========================================================================
         elif isinstance(destTile, GanjiPolice):
@@ -429,8 +433,10 @@ class GanjiGame(App):
         # ================TAX TILES===========================================================================
         elif isinstance(destTile, GanjiTaxes):
             # call playerArrives on the destination tile and add tax to ATM
-            taxAmount = self.board[dest].playerArrives(playerObj, self.boardGfx, self.playerCount)
-            self.board[24].cash += taxAmount
+            self.board[dest].playerArrives(playerObj, self.boardGfx, self.playerCount)
+            # tax may put player in debt
+            if playerObj.debt != 0:
+                self.oweFlag = True
             return []
         # ===================PROPERTIES=======================================================================
         else:
@@ -512,7 +518,7 @@ class GanjiGame(App):
                 self.boardGfx.add_widget(j.widget)
             elif y[0] == 'P':
                 # set the police tile
-                p = GanjiPolice('POLICE\nSTATION', x, toolBox)
+                p = GanjiPolice('POLICE STN', x, toolBox)
                 self.board.append(p)
                 p.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(p.widget)

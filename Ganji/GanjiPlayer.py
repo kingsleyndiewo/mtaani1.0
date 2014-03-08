@@ -289,6 +289,8 @@ class GanjiPlayer:
             doubles = False
             self.doublesCount = 0
         self.boardLog.text = self.boardLog.text + "\nSystem: %s rolled %d and %d" % (self.name, die1, die2)
+        if jailFlag:
+            self.boardLog.text = self.boardLog.text + "\nSystem: %s rolled doubles thrice in a row and must go to jail" % self.name
         return [die1, die2, doubles, jailFlag]
     
     def sellProperty(self, propName, price, player):

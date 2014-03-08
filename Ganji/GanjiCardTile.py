@@ -53,6 +53,8 @@ class GanjiGanjiTile(GanjiTile):
                         # charge
                         if p.cash >= cardValue:
                             p.cash -= cardValue
+                            self.boardLog.text = self.boardLog.text + "\n%s: %s just paid %s %2.f SFR" % (self.name,
+                                p.name, player.name, cardValue)
                         else:
                             # set as bank loan
                             player.ATMTile.cash -= cardValue
@@ -69,15 +71,17 @@ class GanjiGanjiTile(GanjiTile):
             else:
                 amt_dent = (cardValue * (playerCount - 1))
             if player.cash >= amt_dent:
+                # reduce the player's cash
                 player.cash -= amt_dent
                 if cardBox.cards[cardIndex][3]:
-                    # loop and pay
+                    # loop and pay other players
                     for p in GanjiPlayer.playersGroup:
                         if p.name != player.name:
                             p.cash += cardValue
                             self.boardLog.text = self.boardLog.text + "\n%s: %s just received %2.f SFR from %s" % (self.name,
                                 p.name, cardValue, player.name)
                 else:
+                    # pay bank
                     player.ATMTile.cash += amt_dent
             else:
                 # if paying other players pay from bank

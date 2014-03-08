@@ -22,11 +22,27 @@ class GanjiTaxes(GanjiTile):
             # PAYE
             self.tax = self.configger.getfloat('PAYE', 'Rate')
         self.infoLabel = "Pay the designated tax\nat %s percent of your \ncash in hand." % str(self.tax)
+        self.taxDue = 0
+        
     def playerArrives(self, player, boardObj, playerCount):
         # call parent method
         super(GanjiTaxes, self).playerArrives(player, boardObj, playerCount)
         # charge tax
-        taxAmount = player.cash * self.tax
-        player.cash -= taxAmount
-        self.boardLog.text = self.boardLog.text + "\n%s: Thank you for paying your taxes %s" % (self.name, player.name)
-        return taxAmount
+        self.taxDue = player.cash * self.tax
+        # check if the player can pay
+        if player.cash >= self.taxDue:
+            self.payTax(player)
+        else:
+            # has to raise amount
+            player.raiseAmount(self.taxDue - player.cash)
+            # return callback
+            self.creditor = self.payTax
+            self.debtCollection = True
+    
+    def payTax(self, player):
+        """ The calling process is responsible for establishing that the funds are available to pay """
+        # charges tax on player's cash
+        player.cash -= self.taxDue
+        player.ATMTile.cash += self.taxDue
+        self.boardLog.text = self.boardLog.text + "\n%s: %s paid %2.f SFR in taxes" % (self.name, player.name, self.taxDue)
+        self.taxDue = 0
