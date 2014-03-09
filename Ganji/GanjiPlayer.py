@@ -16,6 +16,7 @@ kivy.require('1.7.1')
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.gridlayout import GridLayout
 # system utilities
 from GanjiSystem import GanjiSystem
@@ -108,17 +109,17 @@ class GanjiPlayer:
                     # reduce debt
                     self.debt -= loanAmount
             self.mpContent.text = self.infoBlock()
-            self.smContent.text = "Ganji Bank: You have successfully borrowed %d SFR." % self.loan
+            self.propManSysMsgs.text = "Ganji Bank: You have successfully borrowed %d SFR." % self.loan
             # change button
             instance.color = [1,0,0,1]
             instance.text = 'REPAY LOAN'
             instance.bind(on_release=self.repayLoan)
         elif self.loan > 0:
             # already have a loan
-            self.smContent.text = "Ganji Bank: %s, you already have an outstanding loan\n of %d SFR" % (self.name, self.loan)
+            self.propManSysMsgs.text = "Ganji Bank: %s, you already have an outstanding loan\n of %d SFR" % (self.name, self.loan)
         else:
             # insufficient funds
-            self.smContent.text = "Ganji Bank: %s, we currently have insufficient funds to lend" % self.name
+            self.propManSysMsgs.text = "Ganji Bank: %s, we currently have insufficient funds to lend" % self.name
     
     def getLoanValue(self):
         monthsElapsed = self.age - self.loanDate
@@ -145,7 +146,7 @@ class GanjiPlayer:
             self.loanDate = -1
             self.loan = 0
             self.boardLog.text = self.boardLog.text + "\nGanji Bank: %s has repaid %d SFR to the bank" % (self.name, loanValue)
-            self.smContent.text = "You successfully repaid the loan."
+            self.propManSysMsgs.text = "You successfully repaid the loan."
             # change button
             instance.color = [0,0,0,1]
             instance.text = 'BORROW LOAN'
@@ -161,7 +162,10 @@ class GanjiPlayer:
             self.mpContent.text = self.infoBlock()
         else:
             # not enough ganji :-)
-            self.smContent.text = "You do not have enough cash to repay the loan."
+            self.propManSysMsgs.text = "You do not have enough cash to repay the loan."
+    
+    def tradeCallback(self, instance):
+        pass
         
     def mortgageCallback(self, instance):
         if self.properties[instance.text].mortgaged:
@@ -205,10 +209,63 @@ class GanjiPlayer:
             infoStr = "You currently have no outstanding debt."
         if self.loan > 0:
             infoStr = infoStr + "\nYou have an outstanding loan of %d SFR." % self.loan
+        infoStr += "\nYour cash reserves are %d SFR" % self.cash
         return infoStr    
+     
+    def tradeAssets(self):
+        # shows a dialog that allows selling and so on
+        # setup a canvas
+        cpanel = GridLayout(cols=1)
+        textColor = self.token.background_color[:-1]
+        textColor.append(1)
+        # set system messages
+        sysMsg = "No message from the trade manager"
+        self.tradeManSysMsgs = Label(text=sysMsg, color=textColor, size_hint=(.05, .04), font_size=self.fontSizes[0])
+        cpanel.add_widget(self.tradeManSysMsgs)
+        # list players
+        label2 = Label(text="Please select a player to trade with", color=textColor, size_hint=(.05, .02),
+            font_size=self.fontSizes[0])
+        cpanel.add_widget(label2)
+        for pl in GanjiPlayer.playersGroup:
+            if pl.name != self.name:
+                # create a toggle button
+                playerColor = pl.token.background_color[:-1]
+                playerColor.append(1)
+                tgBtn = ToggleButton(text=pl.name, group="players", font_size=self.fontSizes[0], size_hint=(.05, .02),
+                    background_color=playerColor)
+                cpanel.add_widget(tgBtn)
+        # properties
+        label2 = Label(text="Properties", color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0])
+        cpanel.add_widget(label2)
+        # list all the properties
+        for p in self.properties.values():
+            # create a button
+            propColor = p.widget.background_color
+            try:
+                # for mortgageable property
+                if p.mortgaged:
+                    propItem = Button(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[1,0,0,1],
+                        background_color=propColor)
+                else:
+                    propItem = Button(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1],
+                        background_color=propColor)
+            except AttributeError:
+                # any other property
+                propItem = Button(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1],
+                    background_color=propColor)
+            cpanel.add_widget(propItem)
+            propItem.bind(on_release=self.tradeCallback)
+        # make an exit button
+        propItem = Button(text='CLOSE', font_size=self.fontSizes[0], size_hint=(.02, .02), color=[0,0,0,1], bold=True)
+        propItem.bind(on_release=self.dismissPopup)
+        cpanel.add_widget(propItem)
+        # make a popup and fill with info
+        self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.25, .5))
+        self.popupDialog.pos_hint = {'x':.4, 'y':.38}
+        self.addWidgetToBoard(self.popupDialog)
         
     def manageAssets(self):
-        # shows a dialog that allows mortgaging, selling and so on
+        # shows a dialog that allows mortgaging and so on
         # setup a canvas
         cpanel = GridLayout(cols=1)
         textColor = self.token.background_color[:-1]
@@ -217,8 +274,8 @@ class GanjiPlayer:
         cpanel.add_widget(self.mpContent)
         # set system messages
         sysMsg = "No message from the property manager"
-        self.smContent = Label(text=sysMsg, color=textColor, size_hint=(.05, .04), font_size=self.fontSizes[0])
-        cpanel.add_widget(self.smContent)
+        self.propManSysMsgs = Label(text=sysMsg, color=textColor, size_hint=(.05, .04), font_size=self.fontSizes[0])
+        cpanel.add_widget(self.propManSysMsgs)
         # properties
         label2 = Label(text="Mortgageable Property (click to mortgage or unmortgage)", color=textColor, size_hint=(.05, .02),
             font_size=self.fontSizes[0])
@@ -228,12 +285,15 @@ class GanjiPlayer:
         mAbleCount = 0
         for p in self.properties.values():
             # create a button
+            propColor = p.widget.background_color
             try:
                 # for mortgageable property
                 if p.mortgaged:
-                    propItem = Button(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[1,0,0,1])
+                    propItem = Button(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[1,0,0,1],
+                        background_color=propColor)
                 else:
-                    propItem = Button(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1])
+                    propItem = Button(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1],
+                        background_color=propColor)
                 cpanel.add_widget(propItem)
                 mAbleCount += 1
                 propItem.bind(on_release=self.mortgageCallback)
@@ -249,7 +309,8 @@ class GanjiPlayer:
         cpanel.add_widget(label3)
         if unMAble != []:
             for c in unMAble:
-                propItem = Button(text=c.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1])
+                propItem = Button(text=c.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1],
+                    background_color=c.widget.background_color)
                 cpanel.add_widget(propItem)
         else:
             label4 = Label(text="No unmortgageable property owned", color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0])
@@ -272,7 +333,7 @@ class GanjiPlayer:
         cpanel.add_widget(propItem)
         # make a popup and fill with info
         self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.25, .5))
-        self.popupDialog.pos_hint = {'x':.4, 'y':.48}
+        self.popupDialog.pos_hint = {'x':.4, 'y':.38}
         self.addWidgetToBoard(self.popupDialog)
         
     def rollDice(self):
@@ -302,6 +363,7 @@ class GanjiPlayer:
                 # remove from old owner's dictionary
                 self.properties.pop(propName)
                 self.cash += price
+                
     def mortgageProperty(self, propName):
         # process mortgage and check for outstanding debt
         self.properties[propName].mortgaged = True
@@ -325,7 +387,7 @@ class GanjiPlayer:
         old_color.append(1)
         self.properties[propName].widget.color = old_color
         mortgageFee = self.properties[propName].getMortgageValue() * self.properties[propName].mortgageRate
-        self.smContent.text = "%s has been mortgaged. Note that a fee of\n%d SFR will be charged on unmortgaging." % (propName, mortgageFee)
+        self.propManSysMsgs.text = "%s has been mortgaged. Note that a fee of\n%d SFR will be charged on unmortgaging." % (propName, mortgageFee)
         
     def buyProperty(self):
         # this is only called when player is on property tile and tile has offered
@@ -347,7 +409,7 @@ class GanjiPlayer:
                 self.properties[propName].name, totalDue)
             # revert widget text to black
             self.properties[propName].widget.color = [0,0,0,1]
-            self.smContent.text = "%s has been unmortgaged." % propName
+            self.propManSysMsgs.text = "%s has been unmortgaged." % propName
             # check if we owe anything
             if self.trueDebt > 0:
                 # restore debt value
@@ -358,7 +420,7 @@ class GanjiPlayer:
             return True
         else:
             # not enough ganji :-)
-            self.smContent.text = "You do not have enough cash to unmortgage %s." % propName
+            self.propManSysMsgs.text = "You do not have enough cash to unmortgage %s." % propName
             return False
             
     def buyUnit(self, propName):

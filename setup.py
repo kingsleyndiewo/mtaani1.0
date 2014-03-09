@@ -3,7 +3,9 @@ from cx_Freeze import setup, Executable
 sys.setrecursionlimit(10000)
 
 # Dependencies are automatically detected, but it might need fine tuning.
-build_exe_options = {"packages": ["kivy"], "excludes": ["tkinter", "werkzeug"],
+list_of_excludes = ["tkinter", "werkzeug", "cairo", "cv2", "twisted", "openerp", "Crypto", "gtk-2.0", "scipy",
+                    "simplejson", "numpy", "gst-0.10", "xml", "email", "flask", "jinja2", "json", "distutils"]
+build_exe_options = {"packages": ["os"], "excludes": list_of_excludes,
     "include_files": ['config//','images//','Ganji//'],
     "icon" : "images/app-icon.ico"
     }

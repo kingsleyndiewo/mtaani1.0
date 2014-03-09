@@ -141,16 +141,20 @@ class GanjiGame(App):
         self.playerCount = len(self.playersList)
         # create button for rolling dice
         self.dice = Button(text='ROLL DICE', font_size=self.fontSizes[1], size_hint=(.07, .07), color=[0,0,0,1],
-            pos_hint={'x':.39, 'y':.2}, bold=True, background_color=[.8,.8,1,1])
+            pos_hint={'x':.42, 'y':.2}, bold=True, background_color=[.8,.8,1,1])
         # create button for the asset manager
         self.manager = Button(text='MANAGE ASSETS', font_size=self.fontSizes[1], size_hint=(.09, .05), color=[0,0,0,1],
             pos_hint={'x':.5, 'y':.2}, bold=True, background_color=[.8,.8,1,1])
-        # set the two callbacks
+        # create button for the trade manager
+        self.trader = Button(text='TRADE ASSETS', font_size=self.fontSizes[1], size_hint=(.09, .05), color=[0,0,0,1],
+            pos_hint={'x':.32, 'y':.2}, bold=True, background_color=[.8,.8,1,1])
+        # set the three callbacks
         self.dice.bind(on_release=self.diceCallback)
         self.manager.bind(on_release=self.mgrCallback)
+        self.trader.bind(on_release=self.tdrCallback)
         # create label for showing dice roll results
         self.rolls = Label(text='0    0', font_size=self.fontSizes[1], size_hint=(.07, .07), color=[1,1,1,1],
-            pos_hint={'x':.39, 'y':.25}, bold=True)
+            pos_hint={'x':.42, 'y':.25}, bold=True)
         # create label for showing who's turn it is
         self.turnLabel = Label(text='None', font_size=self.fontSizes[0], size_hint=(.07, .07), color=[1,1,1,1],
             pos_hint={'x':.51, 'y':.25})
@@ -244,6 +248,14 @@ class GanjiGame(App):
         if self.board[playerObj.position].debtCollection and not self.oweFlag:
             self.oweFlag = True
         playerObj.manageAssets()
+        
+    def tdrCallback(self, instance):
+        name = self.playersList[self.currentPlayer]
+        playerObj = self.players[name]
+        # check for any debt
+        if self.board[playerObj.position].debtCollection and not self.oweFlag:
+            self.oweFlag = True
+        playerObj.tradeAssets()
         
     def processFakeRoll(self):
         # get player object
@@ -574,8 +586,10 @@ class GanjiGame(App):
         self.boardGfx.add_widget(self.Ma3Box.box)
         # add roll dice button
         self.boardGfx.add_widget(self.dice)
-        # add manage properties button
+        # add manage assets button
         self.boardGfx.add_widget(self.manager)
+        # add trade assets button
+        self.boardGfx.add_widget(self.trader)
         # add label for dice results
         self.boardGfx.add_widget(self.rolls)
         # add label for turn
