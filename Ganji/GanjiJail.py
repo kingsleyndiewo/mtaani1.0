@@ -27,9 +27,9 @@ class GanjiJail(GanjiTile):
         if player.arrested == True:
             # admit the inmate
             self.admitInmate(player)
-            self.boardLog.text = self.boardLog.text + "\n%s: Think about your crimes %s" % (self.name, player.name)
+            self.boardLog.text += "\n%s: Think about your crimes %s" % (self.name, player.name)
         else:
-            self.boardLog.text = self.boardLog.text + "\n%s: Just visiting %s, this time." % (self.name, player.name)
+            self.boardLog.text += "\n%s: Just visiting %s, this time." % (self.name, player.name)
     def admitInmate(self, player):
         # check-in a player
         player.inJail = True
@@ -50,5 +50,5 @@ class GanjiJail(GanjiTile):
         # has to be cleared
         player.inJail = False
         player.jailTurn = self.turns
-        self.boardLog.text = self.boardLog.text + "\n%s: %s just paid %2.f SFR bail to the police" % (self.name, player.name, self.bail)
+        self.boardLog.text += "\n%s: %s just paid %2.f SFR bail to the police" % (self.name, player.name, self.bail)
             

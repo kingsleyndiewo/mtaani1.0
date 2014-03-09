@@ -47,5 +47,5 @@ class GanjiEstate(GanjiMorgTile):
             for x in hoodEstates:
                 player.properties[x].hoodFull = True
                 player.properties[x].widget.text = player.properties[x].name + "\n@ %s" % player.name
-            self.boardLog.text = self.boardLog.text + "\n%s: %s now has all the estates in this hood!" % (self.name, player.name)
+            self.boardLog.text += "\n%s: %s now has all the estates in this hood!" % (self.name, player.name)
         

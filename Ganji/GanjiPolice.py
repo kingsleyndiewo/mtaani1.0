@@ -19,4 +19,4 @@ class GanjiPolice(GanjiTile):
         super(GanjiPolice, self).playerArrives(player, boardObj, playerCount)
         # arrest player
         player.arrested = True
-        self.boardLog.text = self.boardLog.text + "\n%s: You are under arrest %s" % (self.name, player.name)
+        self.boardLog.text += "\n%s: You are under arrest %s" % (self.name, player.name)

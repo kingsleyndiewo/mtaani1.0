@@ -79,7 +79,7 @@ class GanjiTile(object):
             monthsElapsed = player.age - player.loanDate
             if monthsElapsed >= player.ATMTile.loanTerm:
                 # payment must be made
-                self.boardLog.text = self.boardLog.text + "\nGanji Bank: %s, your outstanding loan is now due" % player.name
+                self.boardLog.text += "\nGanji Bank: %s, your outstanding loan is now due" % player.name
                 if player.cash >= player.getLoanValue():
                     self.payLoan(player)
                 else:

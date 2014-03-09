@@ -44,5 +44,5 @@ class GanjiTaxes(GanjiTile):
         # charges tax on player's cash
         player.cash -= self.taxDue
         player.ATMTile.cash += self.taxDue
-        self.boardLog.text = self.boardLog.text + "\n%s: %s paid %2.f SFR in taxes" % (self.name, player.name, self.taxDue)
+        self.boardLog.text += "\n%s: %s paid %2.f SFR in taxes" % (self.name, player.name, self.taxDue)
         self.taxDue = 0

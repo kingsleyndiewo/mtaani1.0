@@ -16,6 +16,7 @@ kivy.require('1.7.1')
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.gridlayout import GridLayout
 # system utilities
@@ -24,10 +25,10 @@ from GanjiSystem import GanjiSystem
 class GanjiPlayer:
     " The base class for all Ganji players "
     # class variables
-    playersGroup = []
+    playersGroup = {}
     def __init__(self, name, gameContext, boardPos = 0):
         # add to instance group
-        GanjiPlayer.playersGroup.append(self)
+        GanjiPlayer.playersGroup[name] = self
         # get initial values for variables
         self.configger = ConfigParser()
         self.systemBox = GanjiSystem()
@@ -57,6 +58,8 @@ class GanjiPlayer:
         self.loanDate = -1
         self.name = name
         seed()
+        # trade
+        self.proposedTrade = [[], []]
         # make the button (token)
         r_col = float(randint(10,90)) / 60
         g_col = float(randint(10,90)) / 60
@@ -100,7 +103,7 @@ class GanjiPlayer:
             self.cash += loanAmount
             self.ATMTile.cash -= loanAmount
             self.loan = loanAmount
-            self.boardLog.text = self.boardLog.text + "\nGanji Bank: %s has borrowed %d SFR from the bank" % (self.name, loanAmount)
+            self.boardLog.text += "\nGanji Bank: %s has borrowed %d SFR from the bank" % (self.name, loanAmount)
             if self.debt > 0:
                 # check if cash in hand can cover debt now
                 if loanAmount >= self.debt:
@@ -127,7 +130,7 @@ class GanjiPlayer:
     
     def repayLoanLite(self):
         if self.loan == 0:
-            self.boardLog.text = self.boardLog.text + "\nGanji Bank: %s, you do not have an outstanding loan" % self.name
+            self.boardLog.text += "\nGanji Bank: %s, you do not have an outstanding loan" % self.name
         else:
             loanValue = self.getLoanValue()
             if self.cash >= loanValue:
@@ -135,7 +138,7 @@ class GanjiPlayer:
                 self.ATMTile.cash += loanValue
                 self.loanDate = -1
                 self.loan = 0
-                self.boardLog.text = self.boardLog.text + "\nGanji Bank: %s has repaid %d SFR to the bank" % (self.name, loanValue)
+                self.boardLog.text += "\nGanji Bank: %s has repaid %d SFR to the bank" % (self.name, loanValue)
         
     def repayLoan(self, instance):
         # get total due
@@ -145,7 +148,7 @@ class GanjiPlayer:
             self.ATMTile.cash += loanValue
             self.loanDate = -1
             self.loan = 0
-            self.boardLog.text = self.boardLog.text + "\nGanji Bank: %s has repaid %d SFR to the bank" % (self.name, loanValue)
+            self.boardLog.text += "\nGanji Bank: %s has repaid %d SFR to the bank" % (self.name, loanValue)
             self.propManSysMsgs.text = "You successfully repaid the loan."
             # change button
             instance.color = [0,0,0,1]
@@ -212,31 +215,75 @@ class GanjiPlayer:
         infoStr += "\nYour cash reserves are %d SFR" % self.cash
         return infoStr    
      
+    def getPlayerProperties(self, instance):
+        # place properties of player we're trading with in dialog
+        playerObj = GanjiPlayer.playersGroup[instance.text]
+        self.exchangePanel.clear_widgets()
+        self.proposedTrade[1] = []
+        textColor = playerObj.token.background_color[:-1]
+        textColor.append(1)
+        label2 = Label(text="Please select properties you want in exchange", color=textColor, size_hint=(.05, .02),
+            font_size=self.fontSizes[0])
+        self.exchangePanel.add_widget(label2)
+        # get properties
+        for p in playerObj.properties.values():
+            # create the buttons
+            propColor = p.widget.background_color
+            try:
+                # for mortgageable property
+                if p.mortgaged:
+                    propItem = ToggleButton(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[1,0,0,1],
+                        background_color=propColor)
+                else:
+                    propItem = ToggleButton(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1],
+                        background_color=propColor)
+            except AttributeError:
+                # any other property
+                propItem = ToggleButton(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1],
+                    background_color=propColor)
+            self.exchangePanel.add_widget(propItem)
+            propItem.bind(on_release=self.addToBuyBasket)
+        # create a button for cash
+        cashItem = ToggleButton(text="CASH %d SFR" % playerObj.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
+            color=[0,0,0,1], background_color=textColor)
+        cashText = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
+            input_type='number')
+        self.exchangePanel.add_widget(cashItem)
+        self.exchangePanel.add_widget(cashText)
+        # make a propose button
+        propItem = Button(text='PROPOSE TRADE', font_size=self.fontSizes[0], size_hint=(.02, .02), color=[0,0,0,1], bold=True)
+        propItem.bind(on_release=self.proposeTrade)
+        self.exchangePanel.add_widget(propItem)
+        
     def tradeAssets(self):
         # shows a dialog that allows selling and so on
         # setup a canvas
-        cpanel = GridLayout(cols=1)
+        cpanel = GridLayout(cols=2)
+        traderPanel = GridLayout(cols=1)
+        self.exchangePanel = GridLayout(cols=1)
         textColor = self.token.background_color[:-1]
         textColor.append(1)
         # set system messages
         sysMsg = "No message from the trade manager"
         self.tradeManSysMsgs = Label(text=sysMsg, color=textColor, size_hint=(.05, .04), font_size=self.fontSizes[0])
-        cpanel.add_widget(self.tradeManSysMsgs)
+        traderPanel.add_widget(self.tradeManSysMsgs)
         # list players
         label2 = Label(text="Please select a player to trade with", color=textColor, size_hint=(.05, .02),
             font_size=self.fontSizes[0])
-        cpanel.add_widget(label2)
-        for pl in GanjiPlayer.playersGroup:
+        traderPanel.add_widget(label2)
+        for pl in GanjiPlayer.playersGroup.values():
             if pl.name != self.name:
                 # create a toggle button
                 playerColor = pl.token.background_color[:-1]
                 playerColor.append(1)
                 tgBtn = ToggleButton(text=pl.name, group="players", font_size=self.fontSizes[0], size_hint=(.05, .02),
                     background_color=playerColor)
-                cpanel.add_widget(tgBtn)
+                traderPanel.add_widget(tgBtn)
+                tgBtn.bind(on_release=self.getPlayerProperties)
         # properties
-        label2 = Label(text="Properties", color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0])
-        cpanel.add_widget(label2)
+        label2 = Label(text="Please select assets you want to offer", color=textColor, size_hint=(.05, .02),
+            font_size=self.fontSizes[0])
+        traderPanel.add_widget(label2)
         # list all the properties
         for p in self.properties.values():
             # create a button
@@ -244,25 +291,56 @@ class GanjiPlayer:
             try:
                 # for mortgageable property
                 if p.mortgaged:
-                    propItem = Button(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[1,0,0,1],
+                    propItem = ToggleButton(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[1,0,0,1],
                         background_color=propColor)
                 else:
-                    propItem = Button(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1],
+                    propItem = ToggleButton(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1],
                         background_color=propColor)
             except AttributeError:
                 # any other property
-                propItem = Button(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1],
+                propItem = ToggleButton(text=p.name, font_size=self.fontSizes[0], size_hint=(.05, .02), color=[0,0,0,1],
                     background_color=propColor)
-            cpanel.add_widget(propItem)
-            propItem.bind(on_release=self.tradeCallback)
+            traderPanel.add_widget(propItem)
+            propItem.bind(on_release=self.addToSellBasket)
+        # create a button for cash
+        playerColor = self.token.background_color[:-1]
+        playerColor.append(1)
+        cashItem = ToggleButton(text="CASH %d SFR" % self.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
+            color=[0,0,0,1], background_color=playerColor)
+        cashText = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
+            input_type='number')
+        traderPanel.add_widget(cashItem)
+        traderPanel.add_widget(cashText)
+        label2 = Label(text="Please select properties you want in exchange", color=textColor, size_hint=(.05, .02),
+            font_size=self.fontSizes[0])
+        self.exchangePanel.add_widget(label2)
         # make an exit button
         propItem = Button(text='CLOSE', font_size=self.fontSizes[0], size_hint=(.02, .02), color=[0,0,0,1], bold=True)
         propItem.bind(on_release=self.dismissPopup)
-        cpanel.add_widget(propItem)
+        traderPanel.add_widget(propItem)
+        # add both to cpanel
+        cpanel.add_widget(traderPanel)
+        cpanel.add_widget(self.exchangePanel)
         # make a popup and fill with info
-        self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.25, .5))
-        self.popupDialog.pos_hint = {'x':.4, 'y':.38}
+        self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.5, .5))
+        self.popupDialog.pos_hint = {'x':.3, 'y':.38}
         self.addWidgetToBoard(self.popupDialog)
+    
+    def addToSellBasket(self, instance):
+        if instance.state == 'down':
+            # add
+            self.proposedTrade[0].append(instance.text)
+        else:
+            # remove
+            self.proposedTrade[0].remove(instance.text)
+            
+    def addToBuyBasket(self, instance):
+        if instance.state == 'down':
+            # add
+            self.proposedTrade[1].append(instance.text)
+        else:
+            # remove
+            self.proposedTrade[1].remove(instance.text)
         
     def manageAssets(self):
         # shows a dialog that allows mortgaging and so on
@@ -349,11 +427,21 @@ class GanjiPlayer:
         else:
             doubles = False
             self.doublesCount = 0
-        self.boardLog.text = self.boardLog.text + "\nSystem: %s rolled %d and %d" % (self.name, die1, die2)
+        self.boardLog.text += "\nSystem: %s rolled %d and %d" % (self.name, die1, die2)
         if jailFlag:
-            self.boardLog.text = self.boardLog.text + "\nSystem: %s rolled doubles thrice in a row and must go to jail" % self.name
+            self.boardLog.text += "\nSystem: %s rolled doubles thrice in a row and must go to jail" % self.name
         return [die1, die2, doubles, jailFlag]
     
+    def proposeTrade(self, instance):
+        # propose a trade to an opponent
+        myOffer = ''
+        yourOffer = ''
+        for x in self.proposedTrade[0]:
+            myOffer += (x + ',')
+        for y in self.proposedTrade[1]:
+            yourOffer += (y + ',')
+        self.boardLog.text += "\nSystem: %s proposed to trade %s for %s" % (self.name, myOffer, yourOffer)
+        
     def sellProperty(self, propName, price, player):
         # check if you have the property
         if self.properties.has_key(propName):
@@ -370,7 +458,7 @@ class GanjiPlayer:
         # add mortgaged value to cash in hand
         self.cash += self.properties[propName].getMortgageValue()
         # notify
-        self.boardLog.text = self.boardLog.text + "\nSystem: %s has mortgaged %s for %2.f SFR" % (self.name,
+        self.boardLog.text += "\nSystem: %s has mortgaged %s for %2.f SFR" % (self.name,
             self.properties[propName].name, self.properties[propName].getMortgageValue())
         if self.debt > 0:
             # check if cash in hand can cover debt now
@@ -405,7 +493,7 @@ class GanjiPlayer:
             self.cash -= totalDue
             self.ATMTile.cash += totalDue
             # notify
-            self.boardLog.text = self.boardLog.text + "\nSystem: %s has unmortgaged %s for %2.f SFR" % (self.name,
+            self.boardLog.text += "\nSystem: %s has unmortgaged %s for %2.f SFR" % (self.name,
                 self.properties[propName].name, totalDue)
             # revert widget text to black
             self.properties[propName].widget.color = [0,0,0,1]

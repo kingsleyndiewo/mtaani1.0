@@ -32,7 +32,7 @@ class GanjiNonMorgTile(GanjiTile):
         if self.owned:
             # check if owner
             if self.owner.name == player.name:
-                self.boardLog.text = self.boardLog.text + "\n%s: You own this property %s" % (self.name, player.name)
+                self.boardLog.text += "\n%s: You own this property %s" % (self.name, player.name)
             else:
                 # pay fees
                 feesAmount = self.getFees()
@@ -94,7 +94,7 @@ class GanjiNonMorgTile(GanjiTile):
         self.owned = True
         player.properties[self.name] = self
         self.widget.text = self.widget.text + "\n{%s}" % player.name
-        self.boardLog.text = self.boardLog.text + "\n%s: %s just bought this %s company" % (self.name, player.name, self.prefixes[2])
+        self.boardLog.text += "\n%s: %s just bought this %s company" % (self.name, player.name, self.prefixes[2])
         
     def payFees(self, player):
         """ The calling process is responsible for establishing that the funds are available to pay """
@@ -102,7 +102,7 @@ class GanjiNonMorgTile(GanjiTile):
         player.cash -= feesAmount
         if self.owned:
             self.owner.cash += feesAmount
-            self.boardLog.text = self.boardLog.text + "\n%s: %s just paid %2.f SFR to %s" % (self.name, player.name, feesAmount, self.owner.name)
+            self.boardLog.text += "\n%s: %s just paid %2.f SFR to %s" % (self.name, player.name, feesAmount, self.owner.name)
         else: 
             player.ATMTile.cash += feesAmount
-            self.boardLog.text = self.boardLog.text + "\n%s: %s just paid %2.f SFR to the bank" % (self.name, player.name, feesAmount)
+            self.boardLog.text += "\n%s: %s just paid %2.f SFR to the bank" % (self.name, player.name, feesAmount)

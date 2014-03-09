@@ -24,7 +24,7 @@ class GanjiEM(GanjiTile):
         self.agePlayer(player)
         # pay salaries first
         player.cash += (player.salary * self.goFactor)
-        self.boardLog.text = self.boardLog.text + "\n%s: Here's your pay and a times %d bonus for punctuality." % (self.name, self.goFactor)
+        self.boardLog.text += "\n%s: Here's your pay and a times %d bonus for punctuality." % (self.name, self.goFactor)
     def agePlayer(self, player):
         # just increment
         player.age += 1

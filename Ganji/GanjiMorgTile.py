@@ -47,10 +47,10 @@ class GanjiMorgTile(GanjiTile):
         if self.owned:
             # check if owner
             if self.owner.name == player.name:
-                self.boardLog.text = self.boardLog.text + "\n%s: You own this property %s" % (self.name, player.name)
+                self.boardLog.text += "\n%s: You own this property %s" % (self.name, player.name)
             elif self.mortgaged:
                 # no rent
-                self.boardLog.text = self.boardLog.text + "\n%s: Free today only %s" % (self.name, player.name)
+                self.boardLog.text += "\n%s: Free today only %s" % (self.name, player.name)
             else:
                 # pay rent
                 payAmount = self.getEmptyPay()
@@ -109,10 +109,10 @@ class GanjiMorgTile(GanjiTile):
         player.cash -= payAmount
         if self.owned:
             self.owner.cash += payAmount
-            self.boardLog.text = self.boardLog.text + "\n%s: %s just paid %2.f SFR to %s" % (self.name, player.name, payAmount, self.owner.name)
+            self.boardLog.text += "\n%s: %s just paid %2.f SFR to %s" % (self.name, player.name, payAmount, self.owner.name)
         else:
             player.ATMTile.cash += payAmount
-            self.boardLog.text = self.boardLog.text + "\n%s: %s just paid %2.f SFR to the bank" % (self.name, player.name, payAmount)
+            self.boardLog.text += "\n%s: %s just paid %2.f SFR to the bank" % (self.name, player.name, payAmount)
     
     def buyMe(self, player):
         """ The calling process is responsible for establishing that the funds are available to buy """
@@ -124,5 +124,5 @@ class GanjiMorgTile(GanjiTile):
         self.owned = True
         player.properties[self.name] = self
         self.widget.text = self.widget.text + "\n{%s}" % player.name
-        self.boardLog.text = self.boardLog.text + "\n%s: %s just bought this %s" % (self.name, player.name, self.prefixes[2])
+        self.boardLog.text += "\n%s: %s just bought this %s" % (self.name, player.name, self.prefixes[2])
         

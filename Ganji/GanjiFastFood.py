@@ -44,4 +44,4 @@ class GanjiFastFood(GanjiMorgTile):
             for x in tycooneryJoints:
                 player.properties[x].tycoonFull = True
                 player.properties[x].widget.text = player.properties[x].name + "\n@ %s" % player.name
-            self.boardLog.text = self.boardLog.text + "\n%s: %s is now a fast food joints tycoon!" % (self.name, player.name)
+            self.boardLog.text += "\n%s: %s is now a fast food joints tycoon!" % (self.name, player.name)
