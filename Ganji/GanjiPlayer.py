@@ -60,6 +60,9 @@ class GanjiPlayer:
         seed()
         # trade
         self.proposedTrade = [[], []]
+        self.tradePartner = None
+        self.exportsBag = None
+        self.importsBag = None
         # make the button (token)
         r_col = float(randint(10,90)) / 60
         g_col = float(randint(10,90)) / 60
@@ -166,9 +169,6 @@ class GanjiPlayer:
         else:
             # not enough ganji :-)
             self.propManSysMsgs.text = "You do not have enough cash to repay the loan."
-    
-    def tradeCallback(self, instance):
-        pass
         
     def mortgageCallback(self, instance):
         if self.properties[instance.text].mortgaged:
@@ -217,16 +217,16 @@ class GanjiPlayer:
      
     def getPlayerProperties(self, instance):
         # place properties of player we're trading with in dialog
-        playerObj = GanjiPlayer.playersGroup[instance.text]
+        self.tradePartner = GanjiPlayer.playersGroup[instance.text]
         self.exchangePanel.clear_widgets()
         self.proposedTrade[1] = []
-        textColor = playerObj.token.background_color[:-1]
+        textColor = self.tradePartner.token.background_color[:-1]
         textColor.append(1)
         label2 = Label(text="Please select properties you want in exchange", color=textColor, size_hint=(.05, .02),
             font_size=self.fontSizes[0])
         self.exchangePanel.add_widget(label2)
         # get properties
-        for p in playerObj.properties.values():
+        for p in self.tradePartner.properties.values():
             # create the buttons
             propColor = p.widget.background_color
             try:
@@ -244,7 +244,7 @@ class GanjiPlayer:
             self.exchangePanel.add_widget(propItem)
             propItem.bind(on_release=self.addToBuyBasket)
         # create a button for cash
-        cashItem = ToggleButton(text="CASH %d SFR" % playerObj.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
+        cashItem = ToggleButton(text="CASH (up to %d SFR)" % self.tradePartner.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
             color=[0,0,0,1], background_color=textColor)
         cashText = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
             input_type='number')
@@ -305,7 +305,7 @@ class GanjiPlayer:
         # create a button for cash
         playerColor = self.token.background_color[:-1]
         playerColor.append(1)
-        cashItem = ToggleButton(text="CASH %d SFR" % self.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
+        cashItem = ToggleButton(text="CASH (up to %d SFR)" % self.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
             color=[0,0,0,1], background_color=playerColor)
         cashText = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
             input_type='number')
@@ -330,17 +330,22 @@ class GanjiPlayer:
         if instance.state == 'down':
             # add
             self.proposedTrade[0].append(instance.text)
+            self.tradeManSysMsgs.text = "Asset Trader: %s added to items you want to trade, %s" % (instance.text, self.name)
         else:
             # remove
             self.proposedTrade[0].remove(instance.text)
+            self.tradeManSysMsgs.text = "Asset Trader: %s removed from items you want to trade, %s" % (instance.text, self.name)
             
     def addToBuyBasket(self, instance):
         if instance.state == 'down':
             # add
             self.proposedTrade[1].append(instance.text)
+            self.tradeManSysMsgs.text = "Asset Trader: %s added to items you want from %s" % (instance.text, self.tradePartner.name)
+            
         else:
             # remove
             self.proposedTrade[1].remove(instance.text)
+            self.tradeManSysMsgs.text = "Asset Trader: %s removed from items you want from %s" % (instance.text, self.tradePartner.name)
         
     def manageAssets(self):
         # shows a dialog that allows mortgaging and so on
@@ -440,7 +445,15 @@ class GanjiPlayer:
             myOffer += (x + ',')
         for y in self.proposedTrade[1]:
             yourOffer += (y + ',')
-        self.boardLog.text += "\nSystem: %s proposed to trade %s for %s" % (self.name, myOffer, yourOffer)
+        if myOffer != '' and yourOffer != '':
+            # remove trailing commas
+            self.exportsBag = myOffer[:-1]
+            self.importsBag = yourOffer[:-1]
+            self.boardLog.text += "\nSystem: %s proposed to trade %s for %s from %s" % (self.name, myOffer, yourOffer,
+                self.tradePartner.name)
+        else:
+            # not selected trade items either my or your
+            self.tradeManSysMsgs.text = "Asset Trader: You must select items to exchange"
         
     def sellProperty(self, propName, price, player):
         # check if you have the property

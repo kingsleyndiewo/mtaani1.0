@@ -50,9 +50,13 @@ class GanjiNonMorgTile(GanjiTile):
                 # set a dummy debt
                 player.debt = self.dummyDebt
                 # let player choose to buy or pay fees to bank
-                self.popupBox("Buy %s at %d SFR or pay %s of\n%d SFR to bank? You have %d SFR in \ncash, %s" % (self.name,
-                    self.getCost(), self.prefixes[0], self.getFees(), player.cash, player.name),
-                    ["Buy", "Pay %s" % self.prefixes[1]])
+                if player.cash >= self.getCost():
+                    promptText = "%s, will you buy %s at %d SFR or\npay %s of %d SFR to bank? You have %d SFR\nin cash, enough to buy in cash." % (player.name,
+                        self.name, self.getCost(), self.prefixes[0], self.getFees(), player.cash)
+                else:
+                    promptText = "%s, will you buy %s at %d SFR or\npay %s of %d SFR to bank? You have %d SFR\nin cash, you'll need to raise cash if buying." % (player.name,
+                        self.name, self.getCost(), self.prefixes[0], self.getFees(), player.cash)
+                self.popupBox(promptText, ["Buy", "Pay %s" % self.prefixes[1]])
                 # setup post-dialog process
                 self.returnExecution = self.processBuyFees
                 self.reArgs = [player]

@@ -414,6 +414,9 @@ class GanjiGame(App):
             # unless doubles landed us in jail
             if playerObj.inJail == False:
                 switchFlag = False
+            else:
+                # we cancel doubles because player went to jail
+                switchFlag = True
         # =========================================================================================
         # test the feedback for mathree ride
         matCount = 0
