@@ -432,6 +432,10 @@ class GanjiGame(App):
             if playerObj.debt != 0:
                 self.oweFlag = True
             matCount += 1
+            # check jail
+            if playerObj.inJail:
+                # cancel doubles
+                switchFlag = True
         # ========================================================================================
         # here we have already set oweFlag if it was necessary
         # if player is in debt suddenly, don't change turn
