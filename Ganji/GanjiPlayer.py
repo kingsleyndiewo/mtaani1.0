@@ -63,6 +63,7 @@ class GanjiPlayer:
         self.tradePartner = None
         self.exportsBag = None
         self.importsBag = None
+        self.proposedFlag = False
         # make the button (token)
         r_col = float(randint(10,90)) / 60
         g_col = float(randint(10,90)) / 60
@@ -179,6 +180,7 @@ class GanjiPlayer:
             # mortgage the property
             self.mortgageProperty(instance.text)
             instance.color=[1,0,0,1]
+        self.mpContent.text = self.infoBlock()
             
     def dismissPopup(self, instance, touchArgs=None):
         self.removeWidgetFromBoard(self.popupDialog)
@@ -222,8 +224,8 @@ class GanjiPlayer:
         self.proposedTrade[1] = []
         textColor = self.tradePartner.token.background_color[:-1]
         textColor.append(1)
-        label2 = Label(text="Please select properties you want in exchange", color=textColor, size_hint=(.05, .02),
-            font_size=self.fontSizes[0])
+        label2 = Label(text="Please select properties you want from %s" % self.tradePartner.name, color=textColor,
+            size_hint=(.05, .02), font_size=self.fontSizes[0])
         self.exchangePanel.add_widget(label2)
         # get properties
         for p in self.tradePartner.properties.values():
@@ -246,13 +248,18 @@ class GanjiPlayer:
         # create a button for cash
         cashItem = ToggleButton(text="CASH (up to %d SFR)" % self.tradePartner.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
             color=[0,0,0,1], background_color=textColor)
-        cashText = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
+        self.cashText2 = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
             input_type='number')
         self.exchangePanel.add_widget(cashItem)
-        self.exchangePanel.add_widget(cashText)
-        # make a propose button
-        propItem = Button(text='PROPOSE TRADE', font_size=self.fontSizes[0], size_hint=(.02, .02), color=[0,0,0,1], bold=True)
-        propItem.bind(on_release=self.proposeTrade)
+        self.exchangePanel.add_widget(self.cashText2)
+        # make propose and accept buttons
+        self.tradeButton = Button(text='PROPOSE TRADE', font_size=self.fontSizes[0], size_hint=(.02, .02), color=[0,0,0,1],
+            bold=True)
+        self.tradeButton.bind(on_release=self.proposeTrade)
+        propItem = Button(text='ACCEPT TRADE', font_size=self.fontSizes[0], size_hint=(.02, .02), color=[0,0,0,1],
+            bold=True)
+        propItem.bind(on_release=self.acceptTrade)
+        self.exchangePanel.add_widget(self.tradeButton)
         self.exchangePanel.add_widget(propItem)
         
     def tradeAssets(self):
@@ -307,10 +314,11 @@ class GanjiPlayer:
         playerColor.append(1)
         cashItem = ToggleButton(text="CASH (up to %d SFR)" % self.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
             color=[0,0,0,1], background_color=playerColor)
-        cashText = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
+        self.cashText = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
             input_type='number')
+        cashItem.bind(on_release=self.addToSellBasket)
         traderPanel.add_widget(cashItem)
-        traderPanel.add_widget(cashText)
+        traderPanel.add_widget(self.cashText)
         label2 = Label(text="Please select properties you want in exchange", color=textColor, size_hint=(.05, .02),
             font_size=self.fontSizes[0])
         self.exchangePanel.add_widget(label2)
@@ -322,30 +330,41 @@ class GanjiPlayer:
         cpanel.add_widget(traderPanel)
         cpanel.add_widget(self.exchangePanel)
         # make a popup and fill with info
-        self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.5, .5))
+        self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.5, .6))
         self.popupDialog.pos_hint = {'x':.3, 'y':.38}
         self.addWidgetToBoard(self.popupDialog)
     
     def addToSellBasket(self, instance):
+        # cash is processed separately
+        if instance.text[:4] == 'CASH':
+            itemStr = 'Cash'
+        else:
+            itemStr = instance.text
+            
         if instance.state == 'down':
             # add
-            self.proposedTrade[0].append(instance.text)
-            self.tradeManSysMsgs.text = "Asset Trader: %s added to items you want to trade, %s" % (instance.text, self.name)
+            self.proposedTrade[0].append(itemStr)
+            self.tradeManSysMsgs.text = "Asset Trader: %s added to items you want to trade, %s" % (itemStr, self.name)
         else:
             # remove
-            self.proposedTrade[0].remove(instance.text)
-            self.tradeManSysMsgs.text = "Asset Trader: %s removed from items you want to trade, %s" % (instance.text, self.name)
+            self.proposedTrade[0].remove(itemStr)
+            self.tradeManSysMsgs.text = "Asset Trader: %s removed from items you want to trade, %s" % (itemStr, self.name)
             
     def addToBuyBasket(self, instance):
+        # cash is processed separately
+        if instance.text[:4] == 'CASH':
+            itemStr = 'Cash'
+        else:
+            itemStr = instance.text
+            
         if instance.state == 'down':
             # add
-            self.proposedTrade[1].append(instance.text)
-            self.tradeManSysMsgs.text = "Asset Trader: %s added to items you want from %s" % (instance.text, self.tradePartner.name)
-            
+            self.proposedTrade[1].append(itemStr)
+            self.tradeManSysMsgs.text = "Asset Trader: %s added to items you want from %s" % (itemStr, self.tradePartner.name)
         else:
             # remove
-            self.proposedTrade[1].remove(instance.text)
-            self.tradeManSysMsgs.text = "Asset Trader: %s removed from items you want from %s" % (instance.text, self.tradePartner.name)
+            self.proposedTrade[1].remove(itemStr)
+            self.tradeManSysMsgs.text = "Asset Trader: %s removed from items you want from %s" % (itemStr, self.tradePartner.name)
         
     def manageAssets(self):
         # shows a dialog that allows mortgaging and so on
@@ -415,7 +434,7 @@ class GanjiPlayer:
         propItem.bind(on_release=self.dismissPopup)
         cpanel.add_widget(propItem)
         # make a popup and fill with info
-        self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.25, .5))
+        self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.25, .6))
         self.popupDialog.pos_hint = {'x':.4, 'y':.38}
         self.addWidgetToBoard(self.popupDialog)
         
@@ -441,19 +460,115 @@ class GanjiPlayer:
         # propose a trade to an opponent
         myOffer = ''
         yourOffer = ''
+        # sanitize cash text
+        if 'Cash' in self.proposedTrade[0]:
+            # cash is part of myOffer
+            if self.cashText.text.isdigit() == False:
+                # change to zero, player entered non-numeric things
+                self.cashText.text = '0'
+            else:
+                # check if player entered more than what cash is available
+                if int(self.cashText.text) > self.cash:
+                    self.cashText.text = str(self.cash)
+        if 'Cash' in self.proposedTrade[1]:
+            # cash is part of yourOffer
+            if self.cashText2.text.isdigit() == False:
+                # change to zero, player entered non-numeric things
+                self.cashText2.text = '0'
+            else:
+                # check if player entered more than what cash is available
+                if int(self.cashText2.text) > self.tradePartner.cash:
+                    self.cashText2.text = str(self.tradePartner.cash)
         for x in self.proposedTrade[0]:
-            myOffer += (x + ',')
+            if x == 'Cash':
+                myOffer += (self.cashText.text + ' SFR,')
+            else:
+                myOffer += (x + ',')
         for y in self.proposedTrade[1]:
-            yourOffer += (y + ',')
+            if y == 'Cash':
+                yourOffer += (self.cashText2.text + ' SFR,')
+            else:
+                yourOffer += (y + ',')
         if myOffer != '' and yourOffer != '':
-            # remove trailing commas
-            self.exportsBag = myOffer[:-1]
-            self.importsBag = yourOffer[:-1]
+            self.exportsBag = self.proposedTrade[0]
+            self.importsBag = self.proposedTrade[1]
+            # re
+            self.proposedFlag = True
+            self.tradeButton = "COUNTER TRADE"
             self.boardLog.text += "\nSystem: %s proposed to trade %s for %s from %s" % (self.name, myOffer, yourOffer,
                 self.tradePartner.name)
         else:
             # not selected trade items either my or your
             self.tradeManSysMsgs.text = "Asset Trader: You must select items to exchange"
+            self.tradeButton = "PROPOSE TRADE"
+            self.proposedFlag = False
+    
+    def acceptTrade(self, instance):
+        # force a proposal first
+        self.proposeTrade(instance)
+        # accept the currently prevailing deal
+        expCash = 0
+        impCash = 0
+        if self.proposedFlag != True:
+            self.tradeManSysMsgs.text = "Asset Trader: You must propose a trade first"
+            return
+        # =================================================================
+        # deal with cash first
+        # =================================================================
+        if 'Cash' in self.exportsBag:
+            # give cash to trade partner
+            expCash = int(self.cashText.text)
+            self.tradePartner.cash += expCash
+            self.cash -= expCash
+            # remove
+            self.exportsBag.remove('Cash')
+        if 'Cash' in self.importsBag:
+            # take cash from trade partner
+            impCash = int(self.cashText.text)
+            self.tradePartner.cash -= impCash
+            self.cash += impCash
+            # remove
+            self.importsBag.remove('Cash')
+        # =================================================================
+        # change properties owners
+        # =================================================================
+        # first export
+        myOffer = ''
+        for e in self.exportsBag:
+            self.properties[e].transferMe(self.tradePartner)
+            # now they belong to trade partner
+            try:
+                self.tradePartner.properties[e].checkHoods()
+            except:
+                self.tradePartner.properties[e].checkTycoon()
+            myOffer += (e + ',')
+        if expCash > 0:
+            myOffer += "%d SFR" % expCash
+        # =================================================================
+        # then import
+        yourOffer = ''
+        for i in self.importsBag:
+            self.tradePartner.properties[i].transferMe(self)
+            # now they belong to player
+            try:
+                self.properties[i].checkHoods()
+            except:
+                self.properties[i].checkTycoon()
+            yourOffer += (i + ',')
+        if impCash > 0:
+            yourOffer += "%d SFR" % impCash
+        # =================================================================
+        # reset
+        self.proposedFlag = False
+        self.proposedTrade = [[], []]
+        self.tradePartner = None
+        self.exportsBag = None
+        self.importsBag = None
+        # report
+        self.boardLog.text += "\nSystem: %s traded %s for %s from %s" % (self.name, myOffer, yourOffer,
+                self.tradePartner.name)
+        # close dialog
+        self.dismissPopup(instance)
         
     def sellProperty(self, propName, price, player):
         # check if you have the property

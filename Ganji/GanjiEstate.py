@@ -33,9 +33,13 @@ class GanjiEstate(GanjiMorgTile):
         # call parent method
         super(GanjiEstate, self).buyMe(player)
         # check hoods
+        self.checkHoods()
+        
+    def checkHoods(self):
+        # check hoods
         hoodCount = 0
         hoodEstates = []
-        for p in player.properties.values():
+        for p in self.owner.properties.values():
             try:
                 if p.hood == self.hood:
                     hoodCount += 1
@@ -45,7 +49,7 @@ class GanjiEstate(GanjiMorgTile):
         if hoodCount == len(self.hood):
             # we have a hood!
             for x in hoodEstates:
-                player.properties[x].hoodFull = True
-                player.properties[x].widget.text = player.properties[x].name + "\n@ %s" % player.name
-            self.boardLog.text += "\n%s: %s now has all the estates in this hood!" % (self.name, player.name)
-        
+                self.owner.properties[x].hoodFull = True
+                self.owner.properties[x].widget.text = self.owner.properties[x].name + "\n@ %s" % self.owner.name
+            self.boardLog.text += "\n%s: %s now has all the estates in this hood!" % (self.name, self.owner.name)
+    

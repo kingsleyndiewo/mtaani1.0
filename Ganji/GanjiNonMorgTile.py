@@ -22,7 +22,11 @@ class GanjiNonMorgTile(GanjiTile):
     def getCost(self):
         return self.cost
     def getFees(self):
-        return (self.cost * self.fees)
+        if self.tycoonFull:
+            # part of a tycoonery
+            return (self.cost * self.fees * 4)
+        else:
+            return (self.cost * self.fees)
     # handle purchase
     def playerArrives(self, player, boardObj, playerCount):
         # call parent method
@@ -99,6 +103,8 @@ class GanjiNonMorgTile(GanjiTile):
         player.properties[self.name] = self
         self.widget.text = self.widget.text + "\n{%s}" % player.name
         self.boardLog.text += "\n%s: %s just bought this %s company" % (self.name, player.name, self.prefixes[2])
+        # check tycoonery
+        self.checkTycoon()
         
     def payFees(self, player):
         """ The calling process is responsible for establishing that the funds are available to pay """
@@ -110,3 +116,28 @@ class GanjiNonMorgTile(GanjiTile):
         else: 
             player.ATMTile.cash += feesAmount
             self.boardLog.text += "\n%s: %s just paid %2.f SFR to the bank" % (self.name, player.name, feesAmount)
+            
+    def transferMe(self, player):
+        # shift from one player to another
+        del self.owner.properties[self.name]
+        self.owner = player
+        player.properties[self.name] = self
+        self.widget.text = self.name + "\n{%s}" % player.name
+        
+    def checkTycoon(self):
+        # check tycoonery
+        tycoonCount = 0
+        tycooneryJoints = []
+        for p in self.owner.properties.values():
+            try:
+                if p.tycoon == self.tycoon:
+                    tycoonCount += 1
+                    tycooneryJoints.append(p.name)
+            except AttributeError:
+                continue
+        if tycoonCount == len(self.tycoon):
+            # we have a tycoonery!
+            for x in tycooneryJoints:
+                self.owner.properties[x].tycoonFull = True
+                self.owner.properties[x].widget.text = self.owner.properties[x].name + "\n@ %s" % self.owner.name
+            self.boardLog.text += "\n%s: %s is now a %s tycoon!" % (self.name, self.owner.name, self.prefixes[2])

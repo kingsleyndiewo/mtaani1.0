@@ -30,9 +30,13 @@ class GanjiFastFood(GanjiMorgTile):
         # call parent method
         super(GanjiFastFood, self).buyMe(player)
         # check tycoonery
+        self.checkTycoon()
+        
+    def checkTycoon(self):
+        # check tycoonery
         tycoonCount = 0
         tycooneryJoints = []
-        for p in player.properties.values():
+        for p in self.owner.properties.values():
             try:
                 if p.tycoon == self.tycoon:
                     tycoonCount += 1
@@ -42,6 +46,6 @@ class GanjiFastFood(GanjiMorgTile):
         if tycoonCount == len(self.tycoon):
             # we have a tycoonery!
             for x in tycooneryJoints:
-                player.properties[x].tycoonFull = True
-                player.properties[x].widget.text = player.properties[x].name + "\n@ %s" % player.name
-            self.boardLog.text += "\n%s: %s is now a fast food joints tycoon!" % (self.name, player.name)
+                self.owner.properties[x].tycoonFull = True
+                self.owner.properties[x].widget.text = self.owner.properties[x].name + "\n@ %s" % self.owner.name
+            self.boardLog.text += "\n%s: %s is now a fast food joints tycoon!" % (self.name, self.owner.name)

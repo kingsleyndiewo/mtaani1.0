@@ -130,3 +130,9 @@ class GanjiMorgTile(GanjiTile):
         self.widget.text = self.widget.text + "\n{%s}" % player.name
         self.boardLog.text += "\n%s: %s just bought this %s" % (self.name, player.name, self.prefixes[2])
         
+    def transferMe(self, player):
+        # shift from one player to another
+        del self.owner.properties[self.name]
+        self.owner = player
+        player.properties[self.name] = self
+        self.widget.text = self.name + "\n{%s}" % player.name
