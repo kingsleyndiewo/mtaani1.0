@@ -250,6 +250,7 @@ class GanjiPlayer:
             color=[0,0,0,1], background_color=textColor)
         self.cashText2 = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
             input_type='number')
+        cashItem.bind(on_release=self.addToBuyBasket)
         self.exchangePanel.add_widget(cashItem)
         self.exchangePanel.add_widget(self.cashText2)
         # make propose and accept buttons
@@ -492,7 +493,7 @@ class GanjiPlayer:
         if myOffer != '' and yourOffer != '':
             self.exportsBag = self.proposedTrade[0]
             self.importsBag = self.proposedTrade[1]
-            # re
+            # report
             self.proposedFlag = True
             self.tradeButton = "COUNTER TRADE"
             self.boardLog.text += "\nSystem: %s proposed to trade %s for %s from %s" % (self.name, myOffer, yourOffer,
@@ -524,7 +525,7 @@ class GanjiPlayer:
             self.exportsBag.remove('Cash')
         if 'Cash' in self.importsBag:
             # take cash from trade partner
-            impCash = int(self.cashText.text)
+            impCash = int(self.cashText2.text)
             self.tradePartner.cash -= impCash
             self.cash += impCash
             # remove
