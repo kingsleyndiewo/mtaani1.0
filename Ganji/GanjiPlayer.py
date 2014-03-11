@@ -558,15 +558,15 @@ class GanjiPlayer:
         if impCash > 0:
             yourOffer += "%d SFR" % impCash
         # =================================================================
+        # report
+        self.boardLog.text += "\nSystem: %s traded %s for %s from %s" % (self.name, myOffer, yourOffer,
+                self.tradePartner.name)
         # reset
         self.proposedFlag = False
         self.proposedTrade = [[], []]
         self.tradePartner = None
         self.exportsBag = None
         self.importsBag = None
-        # report
-        self.boardLog.text += "\nSystem: %s traded %s for %s from %s" % (self.name, myOffer, yourOffer,
-                self.tradePartner.name)
         # close dialog
         self.dismissPopup(instance)
         
