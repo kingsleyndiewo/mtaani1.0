@@ -23,7 +23,7 @@ list_of_excludes = ["tkinter", "werkzeug", "cairo", "cv2", "twisted", "openerp",
                     "simplejson", "numpy", "gst-0.10", "xml", "email", "flask", "jinja2", "distutils"]
 # options for build        
 build_exe_options = {"packages": ["kivy.graphics"], "excludes": list_of_excludes,
-    "include_files": ['config//','images//','Ganji//','logs//', (kivy_data_rpath, 'kivy/data/')],
+    "include_files": ['config//','images//','logs//', (kivy_data_rpath, 'kivy/data/')],
     "zip_includes" : zip_include_list,
     "icon" : "images/app-icon.ico"
     }
