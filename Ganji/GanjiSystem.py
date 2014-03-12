@@ -15,10 +15,12 @@ class GanjiSystem(object):
     " The base class for all Ganji system utilities "
     def __init__(self):
         # ===============================================================
+        # check if we have a log root
+        log_root = os.environ.get('GANJI_LOG_ROOT', os.path.join(os.path.dirname(__file__),'../logs'))
         # set config variables
         self.configDir = os.path.join(os.path.dirname(__file__),'../config')
         self.imgDir = os.path.join(os.path.dirname(__file__),'../images')
-        self.logDir = os.path.join(os.path.dirname(__file__),'../logs')
+        self.logDir = log_root
         self.companiesConf = self.configDir + '/companies.ini'
         self.estatesConf = self.configDir + '/estates.ini'
         self.utilitiesConf = self.configDir + '/utilities.ini'
