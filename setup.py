@@ -4,8 +4,8 @@ sys.setrecursionlimit(10000)
 import os
 
 # root path to kivy data
-kivy_data_rpath = "../../../../../usr/lib64/python2.7/site-packages/kivy/data/"
-kivy_text_rpath = "../../../../../usr/lib64/python2.7/site-packages/kivy/core/"
+kivy_data_rpath = "../../../../../usr/lib64/python2.7/site-packages/kivy/data//"
+kivy_core_rpath = "../../../../../usr/lib64/python2.7/site-packages/kivy/core/"
 # make a function to walk over data files and make a list of tuples
 def data_lister(data_rpath, target_dir):
     zip_list = []
@@ -16,14 +16,14 @@ def data_lister(data_rpath, target_dir):
             zip_list.append((root + '/' + root_file, target_dir + zip_root + '/' + root_file))
     return zip_list
 
-zip_include_list = data_lister(kivy_data_rpath, 'kivy/data/')
-zip_include_list.extend(data_lister(kivy_text_rpath, 'kivy/core/'))
+# these should go into library.zip
+zip_include_list = data_lister(kivy_core_rpath, 'kivy/core/')
 # dependencies are automatically detected, but it might need fine tuning.
 list_of_excludes = ["tkinter", "werkzeug", "cairo", "cv2", "twisted", "openerp", "Crypto", "gtk-2.0", "scipy",
                     "simplejson", "numpy", "gst-0.10", "xml", "email", "flask", "jinja2", "distutils"]
 # options for build        
 build_exe_options = {"packages": ["kivy.graphics"], "excludes": list_of_excludes,
-    "include_files": ['config//','images//','Ganji//','logs//'],
+    "include_files": ['config//','images//','Ganji//','logs//', (kivy_data_rpath, 'kivy/data/')],
     "zip_includes" : zip_include_list,
     "icon" : "images/app-icon.ico"
     }
