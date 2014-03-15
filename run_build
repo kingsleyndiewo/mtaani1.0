@@ -1,0 +1,5 @@
+#!/bin/sh
+export GANJI_DATA_ROOT='/alliance/technology/Python/Games/Ganji/build/exe.linux-x86_64-2.7/'
+export KIVY_DATA_DIR='/alliance/technology/Python/Games/Ganji/build/exe.linux-x86_64-2.7/kivy/data'
+cd build/exe.linux-x86_64-2.7
+./main
