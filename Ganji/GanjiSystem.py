@@ -9,6 +9,7 @@
 # ---------------------------------------------
 # paths
 import os
+from kivy.core.audio import SoundLoader
 # ---------------------------------------------
 # a class that provides basic OS utility
 class GanjiSystem(object):
@@ -21,6 +22,7 @@ class GanjiSystem(object):
         self.configDir = data_root + '/config'
         self.imgDir = data_root + '/images'
         self.logDir = data_root + '/logs'
+        self.soundDir = data_root + '/sounds'
         self.companiesConf = self.configDir + '/companies.ini'
         self.estatesConf = self.configDir + '/estates.ini'
         self.utilitiesConf = self.configDir + '/utilities.ini'
@@ -37,3 +39,7 @@ class GanjiSystem(object):
     def appendToLogFile(self):
         # open the object for writing, existing file content will be preserved
         self.logFO = open(self.logFile, 'a')
+        
+    def playSound(self, soundName):
+        sound = SoundLoader.load(self.soundDir + '/%s.wav' % soundName)
+        sound.play()

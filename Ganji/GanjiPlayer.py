@@ -455,6 +455,8 @@ class GanjiPlayer:
         self.boardLog.text += "\nSystem: %s rolled %d and %d" % (self.name, die1, die2)
         if jailFlag:
             self.boardLog.text += "\nSystem: %s rolled doubles thrice in a row and must go to jail" % self.name
+        # play sound
+        self.systemBox.playSound('dice_roll%d' % randint(1,3))
         return [die1, die2, doubles, jailFlag]
     
     def proposeTrade(self, instance):
