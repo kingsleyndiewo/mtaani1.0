@@ -32,6 +32,19 @@ class GanjiFastFood(GanjiMorgTile):
         # check tycoonery
         self.checkTycoon()
         
+    def lotCallback(self, instance):
+        # buy or sell a house
+        if self.tycoonFull:
+            # process purchase
+            pass
+        elif not self.owned:
+            # no hood
+            self.boardLog.text += "\n%s: This tycoonery has unowned properties!" % self.name
+        else:
+            # no hood
+            self.boardLog.text += "\n%s: Not all the fast food joints in this tycoonery are yours %s!" % (self.name,
+                self.owner.name)
+        
     def checkTycoon(self):
         # check tycoonery
         tycoonCount = 0

@@ -9,6 +9,7 @@
 # ---------------------------------------------
 # paths
 import os
+from random import randint, seed
 from kivy.core.audio import SoundLoader
 # ---------------------------------------------
 # a class that provides basic OS utility
@@ -31,6 +32,7 @@ class GanjiSystem(object):
         
         self.splashImg = self.imgDir + '/Monopoly.png'
         self.logFile = self.logDir + '/Ganji.log'
+        seed()
     
     def initLogFile(self):
         # open the object for writing, existing file will be overwritten
@@ -41,5 +43,5 @@ class GanjiSystem(object):
         self.logFO = open(self.logFile, 'a')
         
     def playSound(self, soundName):
-        sound = SoundLoader.load(self.soundDir + '/%s.wav' % soundName)
+        sound = SoundLoader.load(self.soundDir + '/%s%d.wav' % (soundName, randint(1,3)))
         sound.play()

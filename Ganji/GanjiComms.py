@@ -23,3 +23,16 @@ class GanjiComms(GanjiNonMorgTile):
     def playerArrives(self, player, boardObj, playerCount):
         # call parent method
         super(GanjiComms, self).playerArrives(player, boardObj, playerCount)
+        
+    def lotCallback(self, instance):
+        # buy or sell a house
+        if self.tycoonFull:
+            # process purchase
+            pass
+        elif not self.owned:
+            # no hood
+            self.boardLog.text += "\n%s: This tycoonery has unowned properties!" % self.name
+        else:
+            # no hood
+            self.boardLog.text += "\n%s: Not all the communications companies in this tycoonery are yours %s!" % (self.name,
+                self.owner.name)

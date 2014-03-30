@@ -35,6 +35,21 @@ class GanjiEstate(GanjiMorgTile):
         # check hoods
         self.checkHoods()
         
+    def lotCallback(self, instance):
+        if not self.owned:
+            # no hood
+            self.boardLog.text += "\n%s: This hood has unowned properties!" % self.name
+        else:
+            # check hoods
+            self.checkHoods()
+            # buy or sell a house
+            if self.hoodFull:
+                # process purchase
+                pass
+            else:
+                # no hood
+                self.boardLog.text += "\n%s: Not all the estates in this hood are yours %s!" % (self.name, self.owner.name)
+        
     def checkHoods(self):
         # check hoods
         hoodCount = 0

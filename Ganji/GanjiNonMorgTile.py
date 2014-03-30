@@ -103,6 +103,7 @@ class GanjiNonMorgTile(GanjiTile):
         player.properties[self.name] = self
         self.widget.text = self.widget.text + "\n{%s}" % player.name
         self.boardLog.text += "\n%s: %s just bought this %s company" % (self.name, player.name, self.prefixes[2])
+        self.systemBox.playSound('buy')
         # check tycoonery
         self.checkTycoon()
         

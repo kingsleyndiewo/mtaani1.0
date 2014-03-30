@@ -186,7 +186,7 @@ class GanjiPlayer:
         self.removeWidgetFromBoard(self.popupDialog)
     
     def raiseAmount(self, amountDue):
-        """ This function doesn't exit until amount is raised or bankruptcy is declared """
+        """ This function is called any time player can't pay cash on a debt """
         # create an info block
         self.debt = amountDue
         # get total payable, which includes your current cash
@@ -205,6 +205,8 @@ class GanjiPlayer:
         self.popupDialog = Popup(title=self.name, content=cpanel, size_hint=(.25, .2))
         self.popupDialog.pos_hint = {'x':.4, 'y':.4}
         self.addWidgetToBoard(self.popupDialog)
+        # play sound
+        self.systemBox.playSound('raise')
     
     def infoBlock(self):
         # info block
@@ -456,7 +458,7 @@ class GanjiPlayer:
         if jailFlag:
             self.boardLog.text += "\nSystem: %s rolled doubles thrice in a row and must go to jail" % self.name
         # play sound
-        self.systemBox.playSound('dice_roll%d' % randint(1,3))
+        self.systemBox.playSound('dice_roll')
         return [die1, die2, doubles, jailFlag]
     
     def proposeTrade(self, instance):

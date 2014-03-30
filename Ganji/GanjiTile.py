@@ -15,9 +15,11 @@ import kivy
 # version check
 kivy.require('1.7.1')
 from kivy.uix.button import Button
+from kivy.uix.spinner import Spinner
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
+from kivy.graphics import *
 # threading
 from GanjiThreads import GanjiThread
 # system utilities
@@ -56,6 +58,8 @@ class GanjiTile(object):
                 self.tycoon = d
         self.hoodFull = False
         self.tycoonFull = False
+        # spaces for development
+        self.lots = []
         # set default button callback
         self.returnExecution = self.runLast
         self.reArgs = None
@@ -63,9 +67,27 @@ class GanjiTile(object):
         self.creditor = self.runLast
         self.debtCollection = False
         self.dummyDebt = 1
+    
+    def createLots(self, boardObj):
+        lotColor = self.widget.background_color[:-1]
+        lotColor.reverse()
+        lotColor.append(1)
+        screenW = boardObj.width
+        screenH = boardObj.height
+        new_x = (self.widget.pos_hint['x'] * screenW)
+        new_y = (self.widget.pos_hint['y'] * screenH)
+        lot_width = self.widget.width / 5
+        lot_height = self.widget.height / 5
+        # create 5 lots
+        for x in range(5):
+            newLot = GanjiLot(x, self, lotColor, [lot_width, lot_height], [new_x, new_y])
+            self.widget.add_widget(newLot.box)
+            self.lots.append(newLot)
+            
     def runLast(self, dummyArg):
         # dummy function for button callback default
         pass
+    
     def playerArrives(self, player, boardObj, playerCount):
         # get over here
         player.position = self.index
@@ -112,6 +134,7 @@ class GanjiTile(object):
         tileFloats.append(1)
         self.color = tileFloats
         return tileFloats
+    
     def tileCallback(self, instance):
         content = Label(text=self.infoLabel, color=self.color)
         content.bind(on_touch_up=self.dismissPopup)
@@ -119,6 +142,7 @@ class GanjiTile(object):
         self.popupDialog = Popup(title=self.name, content=content, size_hint=(.2, .2))
         self.popupDialog.pos_hint = {'x':.4, 'y':.4}
         self.addWidgetToBoard(self.popupDialog)
+        
     def popupCallback(self, instance):
         # just return the value of the clicked button
         self.popupValue = instance.text
@@ -127,7 +151,7 @@ class GanjiTile(object):
         # cleanup after
         self.returnExecution = self.runLast
         self.reArgs = None
-        
+    
     def popupBox(self, boxText, options):
         # make a popup box with the buttons specified
         content = GridLayout(cols=1)
@@ -161,3 +185,14 @@ class GanjiTile(object):
         new_x = round(new_x, 2)
         new_y = round(new_y, 2)
         playerObj.token.pos_hint = {'x':new_x, 'y':new_y}
+        
+# ---------------------------------------------
+# a class that defines the simple Ganji tile lot
+class GanjiLot(object):
+    " The base class for all Ganji tile lots "
+    def __init__(self, tileIndex, tileObj, lotColor, lotSize, lotPos):
+        self.box = Button(text='.', pos=(lotPos[0] + (lotSize[0] * tileIndex), lotPos[1]), color=lotColor,
+                background_color=tileObj.widget.background_color, size=(lotSize[0], lotSize[1]))
+        self.box.bind(on_release=tileObj.lotCallback)
+        self.level = 0
+        self.built = False

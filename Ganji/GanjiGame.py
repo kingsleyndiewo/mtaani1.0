@@ -160,10 +160,10 @@ class GanjiGame(App):
             pos_hint={'x':.51, 'y':.25})
         # create a text box for showing the system and game messages
         self.msgBox = TextInput(text='System: No current messages', font_size=self.fontSizes[0], size_hint=(.24, .3),
-                foreground_color=[.7,1,.7,1], pos_hint = {'x':.39, 'y':.6}, readonly = True, background_color=[0,0,0,1])
+                foreground_color=[.7,1,.7,1], pos_hint = {'x':.39, 'y':.58}, readonly = True, background_color=[0,0,0,1])
         # create a text box for showing the location hails (NikoHapa) and chats (Bonga)
         self.hailBox = TextInput(text='Niko Hapa and Chat Box', font_size=self.fontSizes[0], size_hint=(.24, .3),
-            foreground_color=[1,0,.3,1], pos_hint = {'x':.12, 'y':.6}, readonly = True, background_color=[0,0,0,1])
+            foreground_color=[1,0,.3,1], pos_hint = {'x':.12, 'y':.58}, readonly = True, background_color=[0,0,0,1])
         # create the input box for chat messages and the button for sending
         self.chatBox = TextInput(text='', font_size=self.fontSizes[0], size_hint=(.45, .04),
             foreground_color=[.3,.2,.3,1], pos_hint = {'x':.39, 'y':.1}, background_color=[.7,.8,1,1])
@@ -196,6 +196,8 @@ class GanjiGame(App):
         self.currentPlayer = 0
         # set oweFlag to false
         self.oweFlag = False
+        # set victory flag to false
+        self.victorious = False
         # set jail bird flag to false
         self.jailBird = False
         # set initial turn
@@ -314,6 +316,12 @@ class GanjiGame(App):
         self.playersList.pop(self.currentPlayer)
         self.playerCount -= 1
         del self.players[name]
+        # check victory
+        if self.playerCount == 1:
+            self.victorious = True
+            name = self.playersList[0]
+            playerObj = self.players[name]
+            self.msgBox.text = self.msgBox.text + "\nSystem: %s has won the game!!!" % playerObj.name
         # switch turn
         self.switchTurn(True)
         
@@ -321,6 +329,10 @@ class GanjiGame(App):
         # get player object
         name = self.playersList[self.currentPlayer]
         playerObj = self.players[name]
+        # ==============CHECK VICTORY============================================================
+        if self.victorious:
+            self.msgBox.text = self.msgBox.text + "\nSystem: %s has already won the game" %  self.playersList[self.currentPlayer]
+            return
         # ==============CHECK DEBT===============================================================
         if self.oweFlag:
             if not self.payDues(playerObj):
@@ -510,12 +522,15 @@ class GanjiGame(App):
         toolBox = [self.boardGfx.add_widget, self.boardGfx.remove_widget, self.msgBox, self.processFakeRoll, self.hailBox,
             self.fontSizes, self.mortgageRate]
         for x, y in enumerate(boardTiles):
+            tileObj = None
             if y[0] == 'E':
                 # load an estate
                 e = GanjiEstate(self.estatesList[estateCount], x, toolBox)
                 self.board.append(e)
                 self.boardGfx.add_widget(e.widget)
                 estateCount += 1
+                # make lots for development
+                e.createLots(self.boardGfx)
             elif y[0] == 'F':
                 # load a fast food joint
                 f = GanjiFastFood(self.fastFoodList[fastFoodCount], x, toolBox)
@@ -523,6 +538,7 @@ class GanjiGame(App):
                 f.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(f.widget)
                 fastFoodCount += 1
+                f.createLots(self.boardGfx)
             elif y[0] == 'C':
                 # load a communications company
                 c = GanjiComms(self.commsList[commsCount], x, toolBox)
@@ -530,6 +546,7 @@ class GanjiGame(App):
                 c.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(c.widget)
                 commsCount += 1
+                c.createLots(self.boardGfx)
             elif y[0] == 'T':
                 # load a transport company
                 t = GanjiTransport(self.transportList[transportCount], x, toolBox)
@@ -537,6 +554,7 @@ class GanjiGame(App):
                 t.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(t.widget)
                 transportCount += 1
+                t.createLots(self.boardGfx)
             elif y[0] == 'U':
                 # load a utility
                 u = GanjiUtility(self.utilitiesList[utilityCount], x, toolBox)
@@ -544,47 +562,55 @@ class GanjiGame(App):
                 u.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(u.widget)
                 utilityCount += 1
+                u.createLots(self.boardGfx)
             elif y[0] == 'EM':
                 # set payday tile
                 em = GanjiEM('Payday', x, toolBox)
                 self.board.append(em)
                 em.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(em.widget)
+                tileObj = em
             elif y[0] == 'M':
                 # set a Mat tile
                 m = GanjiMathreeTile('MATHREE', x, toolBox)
                 self.board.append(m)
                 m.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(m.widget)
+                tileObj = m
             elif y[0] == 'G':
                 # set a Ganji tile
                 g = GanjiGanjiTile('GANJI', x, toolBox)
                 self.board.append(g)
                 g.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(g.widget)
+                tileObj = g
             elif y[0] == 'J':
                 # set the jail tile
                 j = GanjiJail('JAIL', x, toolBox)
                 self.board.append(j)
                 j.widget.background_color = [0,0,0,1]
                 self.boardGfx.add_widget(j.widget)
+                tileObj = j
             elif y[0] == 'P':
                 # set the police tile
                 p = GanjiPolice('POLICE STN', x, toolBox)
                 self.board.append(p)
                 p.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(p.widget)
+                tileObj = p
             elif y[0] == 'A':
                 a = GanjiATM('ATM', x, toolBox)
                 self.board.append(a)
                 a.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(a.widget)
+                tileObj = a
             elif y[0] == 'TX':
                 tx = GanjiTaxes(self.taxesList[taxesCount], x, toolBox)
                 self.board.append(tx)
                 tx.widget.background_color = [1,1,1,1]
                 self.boardGfx.add_widget(tx.widget)
                 taxesCount += 1
+                tileObj = tx
             else:
                 # nothing should be handled here
                 pass
