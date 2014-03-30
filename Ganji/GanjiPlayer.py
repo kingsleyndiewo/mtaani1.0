@@ -36,13 +36,18 @@ class GanjiPlayer:
         # set values
         self.cash = self.configger.getint('PLAYER', 'StartCash')
         self.salary = self.configger.getint('PAYDAY', 'Salary')
+        scrollable = bool(self.configger.getint('DISPLAY', 'Scrollable'))
+        scrollScale = self.configger.getint('DISPLAY', 'ScrollScale')
         self.broke = False
         self.position = boardPos
         self.debt = 0
         self.trueDebt = 0
         self.fontSizes = gameContext[5]
         # add a small font
-        self.fontSizes.append(11)
+        if scrollable:
+            self.fontSizes.append(11 * scrollScale)
+        else:
+            self.fontSizes.append(11)
         # jail-related
         self.inJail = False
         self.jailTurn = self.configger.getint('JAIL', 'Turns')

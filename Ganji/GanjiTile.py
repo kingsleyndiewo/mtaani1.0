@@ -49,6 +49,8 @@ class GanjiTile(object):
         self.forcedRoll = gameContext[3]
         self.hailsLog = gameContext[4]
         self.mortgageRate = gameContext[6]
+        self.scrollable = gameContext[7]
+        self.scrollScale = gameContext[8]
         # work out which hood this is in
         for c in hoods:
             if self.index in c:
@@ -83,12 +85,12 @@ class GanjiTile(object):
             #self.widget.add_widget(newLot.box)
             boardObj.add_widget(newLot.box)
             self.lots.append(newLot)
-        # set bindings
-        self.widget.bind(on_size=self.moveLots, on_pos=self.moveLots)
-            
-    def moveLots(self, instance):
-        for c in self.lots:
-            c.resizeLot()
+    #    # set bindings
+    #    self.widget.bind(on_size=self.moveLots, on_pos=self.moveLots)
+    #         
+    #def moveLots(self, instance):
+    #     for c in self.lots:
+    #         c.resizeLot()
             
     def runLast(self, dummyArg):
         # dummy function for button callback default
@@ -210,6 +212,15 @@ class GanjiLot(object):
         self.resizeLot()
         
     def resizeLot(self):
+        # resize
+        if self.tile.scrollable:
+            self.lot_w = (self.tile.widget.width / 5) * self.tile.scrollScale
+            self.lot_h = (self.tile.widget.height / 5) * self.tile.scrollScale
+        else:
+            self.lot_w = self.tile.widget.width / 5
+            self.lot_h = self.tile.widget.height / 5
+        self.box.size=(self.lot_w, self.lot_h)
+        # set other variables
         new_x = self.tile.widget.pos_hint['x']
         # above tile for tiles between 0 and 12
         if self.tile.index < 12 and self.tile.index > 0:

@@ -89,12 +89,16 @@ class GanjiGame(App):
         self.textMax = ganjiConfig.getint('GAME', 'TextMax')
         self.ttsRoll = bool(ganjiConfig.getint('TTS-ROLLS', 'Speak'))
         self.scrollable = bool(ganjiConfig.getint('DISPLAY', 'Scrollable'))
+        self.scrollScale = ganjiConfig.getint('DISPLAY', 'ScrollScale')
         self.mortgageRate = ganjiConfig.getfloat('BANK', 'Mortgage')
         # make a list of the rest
         self.othersList = othersList
         # make layout
-        self.fontSizes = [13, 15]
-        self.boardGfx = GanjiBoard(self.screenW, self.screenH, self.scrollable)
+        if self.scrollable:
+            self.fontSizes = [13 * self.scrollScale, 15 * self.scrollScale]
+        else:
+            self.fontSizes = [13, 15]
+        self.boardGfx = GanjiBoard(self.screenW, self.screenH, self.scrollable, self.scrollScale)
         # =============================================================
         # run graphics constructor
         App.__init__(self)
@@ -520,7 +524,7 @@ class GanjiGame(App):
         taxesCount = 0
         # create the tile objects
         toolBox = [self.boardGfx.add_widget, self.boardGfx.remove_widget, self.msgBox, self.processFakeRoll, self.hailBox,
-            self.fontSizes, self.mortgageRate]
+            self.fontSizes, self.mortgageRate, self.scrollable, self.scrollScale]
         for x, y in enumerate(boardTiles):
             tileObj = None
             if y[0] == 'E':
@@ -649,11 +653,11 @@ class GanjiGame(App):
 # a layout class to arrange the Ganji board tiles
 class GanjiBoard(FloatLayout):
 
-    def __init__(self, x, y, scrollFlag, **kwargs):
+    def __init__(self, x, y, scrollFlag, scrollScale, **kwargs):
         super(GanjiBoard, self).__init__(**kwargs)
         # 13 tiles wide, 13 tiles high
         if scrollFlag:
-            self.size_hint=(1.5, 1.5)
+            self.size_hint=(scrollScale, scrollScale)
         else:
             self.size = (x, y)
         # make a background
