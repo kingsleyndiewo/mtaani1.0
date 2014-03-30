@@ -121,6 +121,8 @@ class GanjiPlayer:
             instance.color = [1,0,0,1]
             instance.text = 'REPAY LOAN'
             instance.bind(on_release=self.repayLoan)
+            # play sound
+            self.systemBox.playSound('get_loan')
         elif self.loan > 0:
             # already have a loan
             self.propManSysMsgs.text = "Ganji Bank: %s, you already have an outstanding loan\n of %d SFR" % (self.name, self.loan)
@@ -180,6 +182,8 @@ class GanjiPlayer:
             # mortgage the property
             self.mortgageProperty(instance.text)
             instance.color=[1,0,0,1]
+            # play sound
+            self.systemBox.playSound('mortgage')
         self.mpContent.text = self.infoBlock()
             
     def dismissPopup(self, instance, touchArgs=None):

@@ -166,9 +166,9 @@ class GanjiGame(App):
             foreground_color=[1,0,.3,1], pos_hint = {'x':.12, 'y':.58}, readonly = True, background_color=[0,0,0,1])
         # create the input box for chat messages and the button for sending
         self.chatBox = TextInput(text='', font_size=self.fontSizes[0], size_hint=(.45, .04),
-            foreground_color=[.3,.2,.3,1], pos_hint = {'x':.39, 'y':.1}, background_color=[.7,.8,1,1])
+            foreground_color=[.3,.2,.3,1], pos_hint = {'x':.39, 'y':.11}, background_color=[.7,.8,1,1])
         self.chatSend = Button(text='SEND', font_size=self.fontSizes[1], size_hint=(.08, .04), color=[0,0,0,1],
-            pos_hint={'x':.3, 'y':.1}, background_color=[.8,.8,1,1], bold=True)
+            pos_hint={'x':.3, 'y':.11}, background_color=[.8,.8,1,1], bold=True)
         self.chatSend.bind(on_release=self.chatCallback)
         # just a convenience list of things we send to other classes a lot
         toolBox = [self.boardGfx.add_widget, self.boardGfx.remove_widget, self.msgBox]

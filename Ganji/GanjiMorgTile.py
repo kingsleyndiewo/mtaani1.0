@@ -26,7 +26,7 @@ class GanjiMorgTile(GanjiTile):
             # part of an estate monopoly
             return (self.cost * self.emptyPay * 2)
         elif self.tycoonFull:
-            # part of a fast food tycoonery
+            # part of a tycoonery
             return (self.cost * self.emptyPay * 4)
         else:
             return (self.cost * self.emptyPay)
