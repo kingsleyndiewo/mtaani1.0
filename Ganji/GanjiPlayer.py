@@ -43,6 +43,7 @@ class GanjiPlayer:
         self.debt = 0
         self.trueDebt = 0
         self.fontSizes = gameContext[5]
+        self.myTurn = False
         # add a small font
         if scrollable:
             self.fontSizes.append(11 * scrollScale)
@@ -88,7 +89,7 @@ class GanjiPlayer:
             jailTxt = "Incarcerated. %d turns left in jail" % self.jailTurn
         else:
             jailTxt = "Free"
-        infoBlock = "Cash: %d SFR\nAge: %d months\nFreedom: %s\nLoan: %d\nMore Info..." % (self.cash, self.age, jailTxt, self.loan)
+        infoBlock = "Cash: %2.f SFR\nAge: %d months\nFreedom: %s\nLoan: %d\nMore Info..." % (self.cash, self.age, jailTxt, self.loan)
         textColor = self.token.background_color[:-1]
         textColor.append(1)
         content = Label(text=infoBlock, color=textColor)
@@ -112,7 +113,7 @@ class GanjiPlayer:
             self.cash += loanAmount
             self.ATMTile.cash -= loanAmount
             self.loan = loanAmount
-            self.boardLog.text += "\nGanji Bank: %s has borrowed %d SFR from the bank" % (self.name, loanAmount)
+            self.boardLog.text += "\nGanji Bank: %s has borrowed %2.f SFR from the bank" % (self.name, loanAmount)
             if self.debt > 0:
                 # check if cash in hand can cover debt now
                 if loanAmount >= self.debt:
@@ -121,7 +122,7 @@ class GanjiPlayer:
                     # reduce debt
                     self.debt -= loanAmount
             self.mpContent.text = self.infoBlock()
-            self.propManSysMsgs.text = "Ganji Bank: You have successfully borrowed %d SFR." % self.loan
+            self.propManSysMsgs.text = "Ganji Bank: You have successfully borrowed %2.f SFR." % self.loan
             # change button
             instance.color = [1,0,0,1]
             instance.text = 'REPAY LOAN'
@@ -130,7 +131,7 @@ class GanjiPlayer:
             self.systemBox.playSound('get_loan')
         elif self.loan > 0:
             # already have a loan
-            self.propManSysMsgs.text = "Ganji Bank: %s, you already have an outstanding loan\n of %d SFR" % (self.name, self.loan)
+            self.propManSysMsgs.text = "Ganji Bank: %s, you already have an outstanding loan\n of %2.f SFR" % (self.name, self.loan)
         else:
             # insufficient funds
             self.propManSysMsgs.text = "Ganji Bank: %s, we currently have insufficient funds to lend" % self.name
@@ -149,7 +150,7 @@ class GanjiPlayer:
                 self.ATMTile.cash += loanValue
                 self.loanDate = -1
                 self.loan = 0
-                self.boardLog.text += "\nGanji Bank: %s has repaid %d SFR to the bank" % (self.name, loanValue)
+                self.boardLog.text += "\nGanji Bank: %s has repaid %2.f SFR to the bank" % (self.name, loanValue)
         
     def repayLoan(self, instance):
         # get total due
@@ -159,7 +160,7 @@ class GanjiPlayer:
             self.ATMTile.cash += loanValue
             self.loanDate = -1
             self.loan = 0
-            self.boardLog.text += "\nGanji Bank: %s has repaid %d SFR to the bank" % (self.name, loanValue)
+            self.boardLog.text += "\nGanji Bank: %s has repaid %2.f SFR to the bank" % (self.name, loanValue)
             self.propManSysMsgs.text = "You successfully repaid the loan."
             # change button
             instance.color = [0,0,0,1]
@@ -200,7 +201,7 @@ class GanjiPlayer:
         self.debt = amountDue
         # get total payable, which includes your current cash
         self.trueDebt = amountDue + self.cash
-        infoBlock = "You need to raise %d SFR.\nTry selling or mortgaging property.\nUse the 'MANAGE ASSETS' button" % (amountDue)
+        infoBlock = "You need to raise %2.f SFR.\nTry selling or mortgaging property.\nUse the 'MANAGE ASSETS' button" % (amountDue)
         textColor = self.token.background_color[:-1]
         textColor.append(1)
         content = Label(text=infoBlock, color=textColor, size_hint=(.05, .03))
@@ -220,12 +221,12 @@ class GanjiPlayer:
     def infoBlock(self):
         # info block
         if self.debt > 0:
-            infoStr = "You need to raise %d SFR.\nTry selling or mortgaging property." % (self.debt)
+            infoStr = "You need to raise %2.f SFR.\nTry selling or mortgaging property." % (self.debt)
         else:
             infoStr = "You currently have no outstanding debt."
         if self.loan > 0:
-            infoStr = infoStr + "\nYou have an outstanding loan of %d SFR." % self.loan
-        infoStr += "\nYour cash reserves are %d SFR" % self.cash
+            infoStr = infoStr + "\nYou have an outstanding loan of %2.f SFR." % self.loan
+        infoStr += "\nYour cash reserves are %2.f SFR" % self.cash
         return infoStr    
      
     def getPlayerProperties(self, instance):
@@ -257,7 +258,7 @@ class GanjiPlayer:
             self.exchangePanel.add_widget(propItem)
             propItem.bind(on_release=self.addToBuyBasket)
         # create a button for cash
-        cashItem = ToggleButton(text="CASH (up to %d SFR)" % self.tradePartner.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
+        cashItem = ToggleButton(text="CASH (up to %2.f SFR)" % self.tradePartner.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
             color=[0,0,0,1], background_color=textColor)
         self.cashText2 = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
             input_type='number')
@@ -324,7 +325,7 @@ class GanjiPlayer:
         # create a button for cash
         playerColor = self.token.background_color[:-1]
         playerColor.append(1)
-        cashItem = ToggleButton(text="CASH (up to %d SFR)" % self.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
+        cashItem = ToggleButton(text="CASH (up to %2.f SFR)" % self.cash, font_size=self.fontSizes[0], size_hint=(.05, .02),
             color=[0,0,0,1], background_color=playerColor)
         self.cashText = TextInput(text='0', color=textColor, size_hint=(.05, .02), font_size=self.fontSizes[0], multiline=False,
             input_type='number')
@@ -477,22 +478,22 @@ class GanjiPlayer:
         # sanitize cash text
         if 'Cash' in self.proposedTrade[0]:
             # cash is part of myOffer
-            if self.cashText.text.isdigit() == False:
+            try:
+                # check if player entered more than what cash is available
+                if float(self.cashText.text) > self.cash:
+                    self.cashText.text = str(self.cash)
+            except ValueError:
                 # change to zero, player entered non-numeric things
                 self.cashText.text = '0'
-            else:
-                # check if player entered more than what cash is available
-                if int(self.cashText.text) > self.cash:
-                    self.cashText.text = str(self.cash)
         if 'Cash' in self.proposedTrade[1]:
             # cash is part of yourOffer
-            if self.cashText2.text.isdigit() == False:
+            try:
+                # check if player entered more than what cash is available
+                if float(self.cashText2.text) > self.tradePartner.cash:
+                    self.cashText2.text = str(self.tradePartner.cash)
+            except ValueError:
                 # change to zero, player entered non-numeric things
                 self.cashText2.text = '0'
-            else:
-                # check if player entered more than what cash is available
-                if int(self.cashText2.text) > self.tradePartner.cash:
-                    self.cashText2.text = str(self.tradePartner.cash)
         for x in self.proposedTrade[0]:
             if x == 'Cash':
                 myOffer += (self.cashText.text + ' SFR,')
@@ -531,14 +532,14 @@ class GanjiPlayer:
         # =================================================================
         if 'Cash' in self.exportsBag:
             # give cash to trade partner
-            expCash = int(self.cashText.text)
+            expCash = float(self.cashText.text)
             self.tradePartner.cash += expCash
             self.cash -= expCash
             # remove
             self.exportsBag.remove('Cash')
         if 'Cash' in self.importsBag:
             # take cash from trade partner
-            impCash = int(self.cashText2.text)
+            impCash = float(self.cashText2.text)
             self.tradePartner.cash -= impCash
             self.cash += impCash
             # remove
@@ -551,26 +552,20 @@ class GanjiPlayer:
         for e in self.exportsBag:
             self.properties[e].transferMe(self.tradePartner)
             # now they belong to trade partner
-            try:
-                self.tradePartner.properties[e].checkHoods()
-            except:
-                self.tradePartner.properties[e].checkTycoon()
+            self.tradePartner.properties[e].checkMonopoly()
             myOffer += (e + ',')
         if expCash > 0:
-            myOffer += "%d SFR" % expCash
+            myOffer += "%2.f SFR" % expCash
         # =================================================================
         # then import
         yourOffer = ''
         for i in self.importsBag:
             self.tradePartner.properties[i].transferMe(self)
             # now they belong to player
-            try:
-                self.properties[i].checkHoods()
-            except:
-                self.properties[i].checkTycoon()
+            self.properties[i].checkMonopoly()
             yourOffer += (i + ',')
         if impCash > 0:
-            yourOffer += "%d SFR" % impCash
+            yourOffer += "%2.f SFR" % impCash
         # =================================================================
         # report
         self.boardLog.text += "\nSystem: %s traded %s for %s from %s" % (self.name, myOffer, yourOffer,
@@ -617,7 +612,7 @@ class GanjiPlayer:
         old_color.append(1)
         self.properties[propName].widget.color = old_color
         mortgageFee = self.properties[propName].getMortgageValue() * self.properties[propName].mortgageRate
-        self.propManSysMsgs.text = "%s has been mortgaged. Note that a fee of\n%d SFR will be charged on unmortgaging." % (propName, mortgageFee)
+        self.propManSysMsgs.text = "%s has been mortgaged. Note that a fee of\n%2.f SFR will be charged on unmortgaging." % (propName, mortgageFee)
         
     def buyProperty(self):
         # this is only called when player is on property tile and tile has offered
@@ -652,12 +647,3 @@ class GanjiPlayer:
             # not enough ganji :-)
             self.propManSysMsgs.text = "You do not have enough cash to unmortgage %s." % propName
             return False
-            
-    def buyUnit(self, propName):
-        # check if you have the property
-        if self.properties.has_key(propName):
-            return self.properties[propName].buyUnit(self)
-    def sellUnit(self, propName):
-        # check if you have the property
-        if self.properties.has_key(propName):
-            return self.properties[propName].sellUnit(self)

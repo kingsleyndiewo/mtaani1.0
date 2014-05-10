@@ -12,27 +12,16 @@ from GanjiNonMorgTile import GanjiNonMorgTile
 class GanjiComms(GanjiNonMorgTile):
     " The base class for all Ganji communications companies; extends GanjiTile "
     def __init__(self, name, boardIndex, gameContext):
-        GanjiNonMorgTile.__init__(self, name, boardIndex, gameContext, ['charge', 'Charge', 'communications']) # ancestral constructor
+        GanjiNonMorgTile.__init__(self, name, boardIndex, gameContext, ['Charge', 'charge', 'communications', 'satellite',
+            'tycoonery']) # ancestral constructor
         # get initial values for variables
         self.configger.read(self.systemBox.companiesConf)
         # set values
         self.cost = self.configger.getint(name, 'Cost')
         self.fees = self.configger.getfloat(name, 'Fee')
         self.infoLabel = "Cost: %s SFR\n%s: %s SFR" % (self.getCost(), self.prefixes[1], self.getFees())
+        self.unitCost = self.cost * self.configger.getfloat(name, 'Satellite')
     
     def playerArrives(self, player, boardObj, playerCount):
         # call parent method
         super(GanjiComms, self).playerArrives(player, boardObj, playerCount)
-        
-    def lotCallback(self, instance):
-        # buy or sell a house
-        if self.tycoonFull:
-            # process purchase
-            pass
-        elif not self.owned:
-            # no hood
-            self.boardLog.text += "\n%s: This tycoonery has unowned properties!" % self.name
-        else:
-            # no hood
-            self.boardLog.text += "\n%s: Not all the communications companies in this tycoonery are yours %s!" % (self.name,
-                self.owner.name)

@@ -15,7 +15,6 @@ import kivy
 # version check
 kivy.require('1.7.1')
 from kivy.uix.button import Button
-from kivy.uix.spinner import Spinner
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
@@ -58,10 +57,9 @@ class GanjiTile(object):
         for d in tycoons:
             if self.index in d:
                 self.tycoon = d
-        self.hoodFull = False
-        self.tycoonFull = False
+        self.monopolyFull = False
         # spaces for development
-        self.lots = []
+        self.lot = None
         # set default button callback
         self.returnExecution = self.runLast
         self.reArgs = None
@@ -70,21 +68,20 @@ class GanjiTile(object):
         self.debtCollection = False
         self.dummyDebt = 1
         # lot dimensions
-        self.lot_width = self.widget.size_hint[0] / 5
+        self.lot_width = self.widget.size_hint[0] / 2
         self.lot_height = self.widget.size_hint[1] / 5
-        self.lot_w = self.widget.width / 5
+        self.lot_w = self.widget.width / 2
         self.lot_h = self.widget.height / 5
     
     def createLots(self, boardObj):
         lotColor = self.widget.background_color[:-1]
         lotColor.reverse()
         lotColor.append(1)
-        # create 5 lots
-        for x in range(5):
-            newLot = GanjiLot(x, self, lotColor, [self.lot_width, self.lot_height], [self.lot_w, self.lot_h])
-            #self.widget.add_widget(newLot.box)
-            boardObj.add_widget(newLot.box)
-            self.lots.append(newLot)
+        # create the lot with 5 spaces
+        newLot = GanjiLot(self, lotColor, [self.lot_width, self.lot_height], [self.lot_w, self.lot_h])
+        #self.widget.add_widget(newLot.box)
+        boardObj.add_widget(newLot.box)
+        self.lot = newLot
     #    # set bindings
     #    self.widget.bind(on_size=self.moveLots, on_pos=self.moveLots)
     #         
@@ -198,15 +195,15 @@ class GanjiTile(object):
 # class that defines the simple Ganji tile lot
 class GanjiLot(object):
     " The base class for all Ganji tile lots "
-    def __init__(self, lotIndex, tileObj, lotColor, lotSizeHint, lotSize):
+    def __init__(self, tileObj, lotColor, lotSizeHint, lotSize):
         # save values
-        self.index = lotIndex
+        self.unitCount = 0
         self.tile = tileObj
         self.level = 0
         self.built = False
         self.sizeHint = lotSizeHint
         # create the lot
-        self.box = Button(text='.', color=lotColor, size_hint=(None, None),
+        self.box = Button(text='{0}', color=lotColor, size_hint=(None, None),
             background_color=tileObj.widget.background_color, size=(lotSize[0], lotSize[1]))
         self.box.bind(on_release=tileObj.lotCallback)
         self.resizeLot()
@@ -214,10 +211,10 @@ class GanjiLot(object):
     def resizeLot(self):
         # resize
         if self.tile.scrollable:
-            self.lot_w = (self.tile.widget.width / 5) * self.tile.scrollScale
+            self.lot_w = (self.tile.widget.width / 2) * self.tile.scrollScale
             self.lot_h = (self.tile.widget.height / 5) * self.tile.scrollScale
         else:
-            self.lot_w = self.tile.widget.width / 5
+            self.lot_w = self.tile.widget.width / 2
             self.lot_h = self.tile.widget.height / 5
         self.box.size=(self.lot_w, self.lot_h)
         # set other variables
@@ -238,31 +235,17 @@ class GanjiLot(object):
         # custom layout for the 2 vertical columns of tiles
         if self.tile.index > 12 and self.tile.index < 24:
             # left side column starting at Githurai
-            if self.index < 3:
-                # line on left edge
-                lot_x = new_x
-                lot_y = new_y + (self.sizeHint[1] * self.index * 1.5)
-            else:
-                # line on right edge
-                lot_x = new_x + (self.sizeHint[0] * 5)
-                if self.tile.index == 23:
-                    # different arrangement for Jamhuri
-                    lot_y = new_y + (self.sizeHint[1] * (self.index - 3) * 1.5)
-                else:
-                    lot_y = new_y + (self.sizeHint[1] * (self.index - 2) * 1.5)
+            # line on left edge
+            lot_x = new_x
+            lot_y = new_y + (self.sizeHint[1] * 3.5)
         elif self.tile.index > 36:
             # right side column starting at Kitisuru
-            if self.index < 3:
-                # line beyond right edge
-                lot_x = new_x + (self.sizeHint[0] * 5)
-                lot_y = new_y + (self.sizeHint[1] * self.index * 1.5)
-            else:
-                # line on left edge
-                lot_x = new_x - (self.sizeHint[0] * 0.75)
-                lot_y = new_y + (self.sizeHint[1] * (self.index - 3) * 1.5)
+            # line beyond right edge
+            lot_x = new_x
+            lot_y = new_y + (self.sizeHint[1] * 3.5)
         else:
             # all horizontal row tiles
-            lot_x = new_x + (self.sizeHint[0] * self.index  * 0.75)
+            lot_x = new_x + (self.sizeHint[0] * 0.75)
             lot_y = new_y
         # set the values
         self.box.pos_hint = {'x':lot_x, 'y':lot_y}

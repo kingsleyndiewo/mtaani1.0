@@ -12,15 +12,18 @@ from GanjiMorgTile import GanjiMorgTile
 class GanjiFastFood(GanjiMorgTile):
     " The base class for all Ganji fast food joints; extends GanjiMorgTile "
     def __init__(self, name, boardIndex, gameContext):
-        GanjiMorgTile.__init__(self, name, boardIndex, gameContext, ['Bill', 'bill', 'fast food joint']) # ancestral constructor
+        GanjiMorgTile.__init__(self, name, boardIndex, gameContext, ['Bill', 'bill', 'fast food joint', 'shop',
+            'tycoonery']) # ancestral constructor
         # get initial values for variables
         self.configger.read(self.systemBox.companiesConf)
         # set values
         self.cost = self.configger.getint(name, 'Cost')
         self.mortgage = self.configger.getfloat(name, 'Mortgage')
         self.emptyPay = self.configger.getfloat(name, 'Meal')
+        # compute cost of shop
+        self.unitCost = self.cost * self.configger.getfloat(name, 'Shop')
         self.infoLabel = "Cost: %s SFR\n%s: %s SFR\nMortgage: %s SFR\nMortgaged: %s" % (self.getCost(), self.prefixes[0],
-            self.getEmptyPay(), self.getMortgageValue(), self.mortgaged)
+            self.getNetPay(), self.getMortgageValue(), self.mortgaged)
     
     def playerArrives(self, player, boardObj, playerCount):
         # call parent method
@@ -30,22 +33,9 @@ class GanjiFastFood(GanjiMorgTile):
         # call parent method
         super(GanjiFastFood, self).buyMe(player)
         # check tycoonery
-        self.checkTycoon()
+        self.checkMonopoly()
         
-    def lotCallback(self, instance):
-        # buy or sell a house
-        if self.tycoonFull:
-            # process purchase
-            pass
-        elif not self.owned:
-            # no hood
-            self.boardLog.text += "\n%s: This tycoonery has unowned properties!" % self.name
-        else:
-            # no hood
-            self.boardLog.text += "\n%s: Not all the fast food joints in this tycoonery are yours %s!" % (self.name,
-                self.owner.name)
-        
-    def checkTycoon(self):
+    def checkMonopoly(self):
         # check tycoonery
         tycoonCount = 0
         tycooneryJoints = []
@@ -56,9 +46,13 @@ class GanjiFastFood(GanjiMorgTile):
                     tycooneryJoints.append(p.name)
             except AttributeError:
                 continue
+        # check if we already found this
+        if tycoonCount > 0:
+            if self.owner.properties[tycooneryJoints[0]].monopolyFull == True:
+                return
         if tycoonCount == len(self.tycoon):
             # we have a tycoonery!
             for x in tycooneryJoints:
-                self.owner.properties[x].tycoonFull = True
+                self.owner.properties[x].monopolyFull = True
                 self.owner.properties[x].widget.text = self.owner.properties[x].name + "\n@ %s" % self.owner.name
             self.boardLog.text += "\n%s: %s is now a fast food joints tycoon!" % (self.name, self.owner.name)

@@ -220,6 +220,9 @@ class GanjiGame(App):
         textColor = playerObj.token.background_color[:-1]
         textColor.append(1)
         self.turnLabel.color = textColor
+        for x in self.players.values():
+            x.myTurn = False
+        playerObj.myTurn = True
     
     def payDues(self, playerObj, bankrupt = False):
         if playerObj.debt == 0:
@@ -287,33 +290,25 @@ class GanjiGame(App):
     
     def bankruptcy(self, player):
         # process a bankruptcy
-        self.msgBox.text = self.msgBox.text + "\nGanji: %s declared bankruptcy!" %  self.playersList[self.currentPlayer]
+        self.msgBox.text = self.msgBox.text + "\nGanji: %s declared bankruptcy!" %  player.name
         self.msgBox.text = self.msgBox.text + "\nGanji: Bank will liquidate assets and pay liabilities"
         # pay dues
         self.payDues(player, True)
+        bountyAmount = 0
         # reclaim properties
         for p in player.properties.values():
-            # set as not owned and recover money
-            player.ATMTile.cash += p.getCost()
-            p.owned = False
-            p.owner = None
-            p.widget.text = p.name
-            p.widget.color=[0,0,0,1]
-            # remove mortgage
-            try:
-                if p.mortgaged:
-                    p.mortgaged = False
-                    mortgageFee = p.getMortgageValue() * (1 + self.mortgageRate)
-                    player.ATMTile.cash -= mortgageFee
-                    if player.ATMTile.cash < 0:
-                        player.ATMTile.cash = 0
-            except AttributeError:
-                pass
-            # remove tycoons and hoods
-            if p.tycoonFull:
-                p.tycoonFull = False
-            if p.hoodFull:
-                p.hoodFull = False
+            bountyAmount += p.bankruptcyCleanup(player)
+        # pay bounty
+        try:
+            # bounty goes to owner of where player is bankrupted
+            self.board[player.position].owner.cash += bountyAmount
+            self.msgBox.text = self.msgBox.text + "\nGanji: %s had %2.f SFR in net assets,\nwhich have been liquidated and transferred\nto %s" % (player.name,
+                bountyAmount, self.board[player.position].owner.name)
+        except:
+            # give to bank
+            player.ATMTile.cash += bountyAmount
+            self.msgBox.text = self.msgBox.text + "\nGanji: %s had %2.f SFR in net assets,\nwhich have been liquidated and transferred\nto the bank" % (player.name,
+                bountyAmount)
         # remove from board
         name = self.playersList[self.currentPlayer]
         self.boardGfx.remove_widget(player.token)
@@ -326,13 +321,19 @@ class GanjiGame(App):
             name = self.playersList[0]
             playerObj = self.players[name]
             self.msgBox.text = self.msgBox.text + "\nSystem: %s has won the game!!!" % playerObj.name
-        # switch turn
-        self.switchTurn(True)
+        else:
+            # switch turn
+            self.switchTurn(True)
         
     def diceCallback(self, instance):
         # get player object
-        name = self.playersList[self.currentPlayer]
-        playerObj = self.players[name]
+        try:
+            name = self.playersList[self.currentPlayer]
+            playerObj = self.players[name]
+        except IndexError:
+            # game over
+            self.msgBox.text = self.msgBox.text + "\nSystem: %s has already won the game" %  self.playersList[0]
+            return
         # ==============CHECK VICTORY============================================================
         if self.victorious:
             self.msgBox.text = self.msgBox.text + "\nSystem: %s has already won the game" %  self.playersList[self.currentPlayer]

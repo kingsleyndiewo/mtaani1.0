@@ -12,18 +12,21 @@ from GanjiMorgTile import GanjiMorgTile
 class GanjiEstate(GanjiMorgTile):
     " The base class for all Ganji estates; extends GanjiMorgTile "
     def __init__(self, name, boardIndex, gameContext):
-        GanjiMorgTile.__init__(self, name, boardIndex, gameContext, ['Rent', 'rent', 'estate']) # ancestral constructor
+        GanjiMorgTile.__init__(self, name, boardIndex, gameContext, ['Rent', 'rent', 'estate', 'house',
+            'hood']) # ancestral constructor
         # get initial values for variables
         self.configger.read(self.systemBox.estatesConf)
         # set values
         self.cost = self.configger.getint(name, 'Cost')
         self.mortgage = self.configger.getfloat(name, 'Mortgage')
         self.emptyPay = self.configger.getfloat(name, 'Rent')
+        # compute cost of house
+        self.unitCost = self.cost * (self.mortgage + 0.2)
         tileColor = self.configger.get(name, 'Color')
         tileRGBA = self.parseColor(tileColor)
         self.widget.background_color = tileRGBA
         self.infoLabel = "Cost: %s SFR\n%s: %s SFR\nMortgage: %s SFR\nMortgaged: %s" % (self.getCost(), self.prefixes[0],
-            self.getEmptyPay(), self.getMortgageValue(), self.mortgaged)
+            self.getNetPay(), self.getMortgageValue(), self.mortgaged)
     
     def playerArrives(self, player, boardObj, playerCount):
         # call parent method
@@ -33,24 +36,9 @@ class GanjiEstate(GanjiMorgTile):
         # call parent method
         super(GanjiEstate, self).buyMe(player)
         # check hoods
-        self.checkHoods()
+        self.checkMonopoly()
         
-    def lotCallback(self, instance):
-        if not self.owned:
-            # no hood
-            self.boardLog.text += "\n%s: This hood has unowned properties!" % self.name
-        else:
-            # check hoods
-            self.checkHoods()
-            # buy or sell a house
-            if self.hoodFull:
-                # process purchase
-                pass
-            else:
-                # no hood
-                self.boardLog.text += "\n%s: Not all the estates in this hood are yours %s!" % (self.name, self.owner.name)
-        
-    def checkHoods(self):
+    def checkMonopoly(self):
         # check hoods
         hoodCount = 0
         hoodEstates = []
@@ -61,10 +49,14 @@ class GanjiEstate(GanjiMorgTile):
                     hoodEstates.append(p.name)
             except AttributeError:
                 continue
+        # check if we already found this
+        if hoodCount > 0:
+            if self.owner.properties[hoodEstates[0]].monopolyFull == True:
+                return
         if hoodCount == len(self.hood):
             # we have a hood!
             for x in hoodEstates:
-                self.owner.properties[x].hoodFull = True
+                self.owner.properties[x].monopolyFull = True
                 self.owner.properties[x].widget.text = self.owner.properties[x].name + "\n@ %s" % self.owner.name
             self.boardLog.text += "\n%s: %s now has all the estates in this hood!" % (self.name, self.owner.name)
     
