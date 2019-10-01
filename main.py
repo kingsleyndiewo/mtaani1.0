@@ -1,14 +1,14 @@
 # Package Description: Intellect Alliance Games Pack
-# Title: Ganji Board Game
+# Title: Mtaani Board Game
 # File: main.py
-# Desc: Entry point for the Ganji game
+# Desc: Entry point for the Mtaani game
 # Author: Kingsley Ndiewo
 # Company: Intellect Alliance Limited
 # Copyright: (C)2013 Intellect Alliance Limited
-from Ganji.GanjiGame import GanjiGame
+from Mtaani.MtaaniGame import MtaaniGame
 
 def loadConfiguration():
-    newGame = GanjiGame()
+    newGame = MtaaniGame()
     newGame.run()
     
 if __name__ == '__main__':

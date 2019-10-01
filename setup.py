@@ -34,9 +34,9 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
-setup(  name = "Ganji 1.0",
+setup(  name = "Mtaani 1.0",
         version = "1.0",
-        description = "Ganji 1.0 board game",
+        description = "Mtaani 1.0 board game",
         options = {"build_exe": build_exe_options},
         executables = [Executable("main.py", base=base)])
 
