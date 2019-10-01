@@ -1,5 +1,0 @@
-#!/bin/sh
-export MTAANI_DATA_ROOT='/root/Documents/CodeCentral/Python/Games/Archived/Mtaani/build/exe.linux-x86_64-2.7/'
-export KIVY_DATA_DIR='/root/Documents/CodeCentral/Python/Games/Archived/Mtaani/build/exe.linux-x86_64-2.7/kivy/data'
-cd build/exe.linux-x86_64-2.7
-./main
